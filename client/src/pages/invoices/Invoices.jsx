@@ -1,7 +1,22 @@
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import api from "../../api/axios";
 
 const Invoices = () => {
   const navigate = useNavigate();
+  const [invoices, setInvoices] = useState([]);
+
+  useEffect(() => {
+    const fetchInvoices = async () => {
+      try {
+        const { data } = await api.get("/invoices");
+        setInvoices(data);
+      } catch (error) {
+        console.error("Failed to fetch invoices", error);
+      }
+    };
+    fetchInvoices();
+  }, []);
 
   return (
     <div>
@@ -16,7 +31,7 @@ const Invoices = () => {
       <table width="100%" border="1" cellPadding="10">
         <thead>
           <tr>
-            <th>Invoice No</th>
+            <th>Month</th>
             <th>Tenant</th>
             <th>Amount</th>
             <th>Status</th>
@@ -25,17 +40,19 @@ const Invoices = () => {
         </thead>
 
         <tbody>
-          <tr>
-            <td>INV-001</td>
-            <td>Rahul</td>
-            <td>₹12,980</td>
-            <td>Pending</td>
-            <td>
-              <button onClick={() => navigate("/invoices/1")}>
-                View
-              </button>
-            </td>
-          </tr>
+          {invoices.map((invoice) => (
+            <tr key={invoice._id}>
+              <td>{invoice.month} {invoice.year}</td>
+              <td>{invoice.tenant?.name || "N/A"}</td>
+              <td>₹{invoice.totalAmount}</td>
+              <td>{invoice.status}</td>
+              <td>
+                <button onClick={() => navigate(`/invoices/${invoice._id}`)}>
+                  View
+                </button>
+              </td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>

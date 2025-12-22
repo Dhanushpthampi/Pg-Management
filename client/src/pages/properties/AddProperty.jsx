@@ -1,7 +1,10 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import api from "../../api/axios";
 import BackButton from "../../components/BackButton.jsx";
 
 const AddProperty = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
     address: "",
@@ -20,9 +23,16 @@ const AddProperty = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(formData);
+    try {
+      await api.post("/properties", formData);
+      alert("Property created successfully!");
+      navigate("/properties");
+    } catch (error) {
+      console.error(error);
+      alert("Failed to create property");
+    }
   };
 
   return (

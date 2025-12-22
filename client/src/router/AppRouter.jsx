@@ -4,7 +4,9 @@ import MainLayout from "../layouts/MainLayout";
 import Dashboard from "../pages/dashboard/Dashboard";
 import Properties from "../pages/properties/Properties";
 import AddProperty from "../pages/properties/AddProperty";
+import EditProperty from "../pages/properties/EditProperty";
 import BedStructure from "../pages/properties/BedStructure";
+import ManageHierarchy from "../pages/properties/ManageHierarchy";
 import Tenants from "../pages/tenants/Tenants";
 import TenantDetails from "../pages/tenants/TenantDetails";
 import Checkout from "../pages/tenants/Checkout";
@@ -33,7 +35,9 @@ const AppRouter = () => {
 
                     <Route path="/properties" element={<Properties />} />
                     <Route path="/properties/new" element={<AddProperty />} />
+                    <Route path="/properties/:id/edit" element={<EditProperty />} />
                     <Route path="/properties/:id/beds" element={<BedStructure />} />
+                    <Route path="/properties/:id/hierarchy" element={<ManageHierarchy />} />
 
                     <Route path="/tenants" element={<Tenants />} />
                     <Route path="/tenants/:id" element={<TenantDetails />} />

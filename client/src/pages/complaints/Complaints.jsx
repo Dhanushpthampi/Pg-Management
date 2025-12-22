@@ -1,7 +1,22 @@
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import api from "../../api/axios";
 
 const Complaints = () => {
   const navigate = useNavigate();
+  const [complaints, setComplaints] = useState([]);
+
+  useEffect(() => {
+    const fetchComplaints = async () => {
+      try {
+        const { data } = await api.get("/complaints");
+        setComplaints(data);
+      } catch (error) {
+        console.error("Failed to fetch complaints", error);
+      }
+    };
+    fetchComplaints();
+  }, []);
 
   return (
     <div>
@@ -16,38 +31,30 @@ const Complaints = () => {
       <table width="100%" border="1" cellPadding="10">
         <thead>
           <tr>
-            <th>Issue</th>
+            <th>Title</th>
             <th>Category</th>
             <th>Priority</th>
             <th>Status</th>
+            <th>Raised By</th>
             <th>Action</th>
           </tr>
         </thead>
 
         <tbody>
-          <tr>
-            <td>Wi-Fi not working</td>
-            <td>Internet</td>
-            <td>High</td>
-            <td>Open</td>
-            <td>
-              <button onClick={() => navigate("/complaints/1")}>
-                View
-              </button>
-            </td>
-          </tr>
-
-          <tr>
-            <td>Leaking Tap</td>
-            <td>Plumbing</td>
-            <td>Medium</td>
-            <td>In Progress</td>
-            <td>
-              <button onClick={() => navigate("/complaints/2")}>
-                View
-              </button>
-            </td>
-          </tr>
+          {complaints.map((complaint) => (
+            <tr key={complaint._id}>
+              <td>{complaint.title}</td>
+              <td>{complaint.category}</td>
+              <td>{complaint.priority}</td>
+              <td>{complaint.status}</td>
+              <td>{complaint.raisedBy?.name || "N/A"}</td>
+              <td>
+                <button onClick={() => navigate(`/complaints/${complaint._id}`)}>
+                  View
+                </button>
+              </td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>
