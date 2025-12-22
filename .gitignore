@@ -1,0 +1,31 @@
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+
+# Build and Dependency directories
+node_modules/
+dist/
+build/
+out/
+bin/
+obj/
+
+# Environment and Secrets
+.env
+*.local
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+
+# IDEs
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
