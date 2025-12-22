@@ -42,27 +42,36 @@ const Properties = () => {
           </tr>
         </thead>
 
-        <tbody>
-          <tr>
-            <td>GullyPG – Nagarbhavi</td>
-            <td>Bangalore</td>
-            <td>12</td>
-            <td>80</td>
-            <td>70</td>
-            <td>Ramesh</td>
-            <td>View</td>
-          </tr>
+<tbody>
+  <tr>
+    <td>GullyPG – Nagarbhavi</td>
+    <td>Bangalore</td>
+    <td>12</td>
+    <td>80</td>
+    <td>70</td>
+    <td>Ramesh</td>
+    <td>
+      <button onClick={() => navigate("/properties/1/beds")}>
+        Manage Beds
+      </button>
+    </td>
+  </tr>
 
-          <tr>
-            <td>GullyPG – Kengeri</td>
-            <td>Bangalore</td>
-            <td>4</td>
-            <td>60</td>
-            <td>55</td>
-            <td>Ravi</td>
-            <td>View</td>
-          </tr>
-        </tbody>
+  <tr>
+    <td>GullyPG – Kengeri</td>
+    <td>Bangalore</td>
+    <td>4</td>
+    <td>60</td>
+    <td>55</td>
+    <td>Ravi</td>
+    <td>
+      <button onClick={() => navigate("/properties/2/beds")}>
+        Manage Beds
+      </button>
+    </td>
+  </tr>
+</tbody>
+
       </table>
     </div>
   );

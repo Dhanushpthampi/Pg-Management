@@ -1,9 +1,18 @@
-import React from 'react'
+import BackButton from "../../components/BackButton";
 
 const InvoiceView = () => {
-    return (
-        <div>InvoiceView</div>
-    )
-}
+  return (
+    <div>
+      <BackButton />
+      <h1>Invoice INV-001</h1>
 
-export default InvoiceView
+      <p><strong>Tenant:</strong> Rahul</p>
+      <p><strong>Amount:</strong> ₹12,980</p>
+      <p><strong>Status:</strong> Pending</p>
+
+      <button>Download PDF</button>
+    </div>
+  );
+};
+
+export default InvoiceView;

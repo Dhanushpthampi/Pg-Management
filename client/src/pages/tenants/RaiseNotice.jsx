@@ -1,9 +1,16 @@
-import React from 'react'
+import BackButton from "../../components/BackButton";
 
 const RaiseNotice = () => {
-    return (
-        <div>RaiseNotice</div>
-    )
-}
+  return (
+    <div>
+      <BackButton />
+      <h1>Raise Notice</h1>
 
-export default RaiseNotice
+      <textarea placeholder="Reason for leaving" rows="4" />
+      <br /><br />
+      <button>Submit Notice</button>
+    </div>
+  );
+};
+
+export default RaiseNotice;
