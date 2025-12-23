@@ -150,37 +150,259 @@ const TenantDetails = () => {
       </div>
 
       <style>{`
-        .profile-container { max-width: 1000px; margin: 0 auto; }
-        .header-card { background: white; padding: 25px; border-radius: 12px; border: 1px solid #ddd; margin-bottom: 20px; }
-        .profile-header { display: flex; gap: 20px; align-items: flex-start; }
-        .avatar-placeholder { width: 100px; height: 100px; background: #f0f0f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-        .profile-info { flex: 1; }
-        .name-row { display: flex; align-items: center; gap: 15px; margin-bottom: 10px; }
-        .name-row h1 { margin: 0; font-size: 24px; }
-        .status-badge { padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; text-transform: uppercase; color: white; }
+        .profile-container { 
+          max-width: 1000px; 
+          margin: 0 auto; 
+          padding: 0 15px;
+        }
+        
+        .header-card { 
+          background: white; 
+          padding: 25px; 
+          border-radius: 12px; 
+          border: 1px solid #ddd; 
+          margin-bottom: 20px; 
+        }
+        
+        .profile-header { 
+          display: flex; 
+          flex-wrap: wrap;
+          gap: 20px; 
+          align-items: flex-start; 
+        }
+        
+        .avatar-placeholder { 
+          width: 100px; 
+          height: 100px; 
+          background: #f0f0f0; 
+          border-radius: 50%; 
+          display: flex; 
+          align-items: center; 
+          justify-content: center; 
+          flex-shrink: 0; 
+        }
+        
+        .profile-info { 
+          flex: 1; 
+          min-width: 280px;
+        }
+        
+        .name-row { 
+          display: flex; 
+          align-items: center; 
+          gap: 15px; 
+          margin-bottom: 10px; 
+          flex-wrap: wrap; 
+        }
+        
+        .name-row h1 { 
+          margin: 0; 
+          font-size: 24px; 
+        }
+        
+        .status-badge { 
+          padding: 4px 12px; 
+          border-radius: 4px; 
+          font-size: 12px; 
+          font-weight: bold; 
+          text-transform: uppercase; 
+          color: white; 
+          white-space: nowrap; 
+        }
+        
         .status-badge.active { background: #4CAF50; }
         .status-badge.vacated { background: #F44336; }
         .status-badge.on_notice { background: #FF9800; }
         
-        .contact-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; color: #555; font-size: 14px; }
-        .contact-item { display: flex; align-items: center; gap: 8px; }
+        .contact-grid { 
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px; 
+          color: #555; 
+          font-size: 14px; 
+        }
         
-        .header-actions { display: flex; gap: 10px; }
-        .outline-btn { background: white; border: 1px solid #333; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+        .contact-item { 
+          display: flex; 
+          align-items: center; 
+          gap: 8px;
+          flex: 1 1 calc(50% - 5px);
+          min-width: 200px;
+        }
         
-        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 20px; }
-        .stat-card { background: white; padding: 20px; border-radius: 12px; border: 1px solid #ddd; }
-        .stat-title { color: #555; font-size: 14px; margin-bottom: 8px; }
-        .stat-value { font-size: 24px; font-weight: bold; color: #333; }
+        .contact-item span { 
+          overflow: hidden; 
+          text-overflow: ellipsis; 
+        }
         
-        .details-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
-        .detail-card { background: white; padding: 25px; border-radius: 12px; border: 1px solid #ddd; }
-        .detail-card h3 { margin-top: 0; margin-bottom: 20px; font-size: 18px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
-        .detail-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px; }
-        .detail-row .label { color: #666; }
-        .detail-row .value { font-weight: 500; color: #333; text-align: right; }
+        .header-actions { 
+          display: flex; 
+          gap: 10px;
+          flex-shrink: 0;
+        }
         
-        .link-btn { display: flex; align-items: center; gap: 5px; color: #1976D2; text-decoration: none; font-size: 13px; }
+        .outline-btn { 
+          background: white; 
+          border: 1px solid #333; 
+          padding: 8px 16px; 
+          border-radius: 6px; 
+          cursor: pointer; 
+          font-size: 14px; 
+          white-space: nowrap; 
+        }
+        
+        .stats-row { 
+          display: flex;
+          flex-wrap: wrap;
+          gap: 20px; 
+          margin-bottom: 20px; 
+        }
+        
+        .stat-card { 
+          background: white; 
+          padding: 20px; 
+          border-radius: 12px; 
+          border: 1px solid #ddd;
+          flex: 1 1 calc(25% - 15px);
+          min-width: 200px;
+        }
+        
+        .stat-title { 
+          color: #555; 
+          font-size: 14px; 
+          margin-bottom: 8px; 
+        }
+        
+        .stat-value { 
+          font-size: 24px; 
+          font-weight: bold; 
+          color: #333; 
+        }
+        
+        .details-grid { 
+          display: flex;
+          flex-wrap: wrap;
+          gap: 20px; 
+        }
+        
+        .detail-card { 
+          background: white; 
+          padding: 25px; 
+          border-radius: 12px; 
+          border: 1px solid #ddd;
+          flex: 1 1 calc(50% - 10px);
+          min-width: 300px;
+        }
+        
+        .detail-card h3 { 
+          margin-top: 0; 
+          margin-bottom: 20px; 
+          font-size: 18px; 
+          border-bottom: 1px solid #eee; 
+          padding-bottom: 10px; 
+        }
+        
+        .detail-row { 
+          display: flex; 
+          justify-content: space-between;
+          gap: 10px;
+          margin-bottom: 12px; 
+          font-size: 14px; 
+        }
+        
+        .detail-row .label { 
+          color: #666;
+          flex-shrink: 0;
+        }
+        
+        .detail-row .value { 
+          font-weight: 500; 
+          color: #333; 
+          text-align: right;
+          word-break: break-word;
+        }
+        
+        .link-btn { 
+          display: flex; 
+          align-items: center; 
+          gap: 5px; 
+          color: #1976D2; 
+          text-decoration: none; 
+          font-size: 13px; 
+        }
+
+        /* Mobile Styles */
+        @media (max-width: 768px) {
+          .header-card { 
+            padding: 15px; 
+          }
+          
+          .profile-header { 
+            flex-direction: column; 
+            align-items: center; 
+          }
+          
+          .profile-info {
+            text-align: center;
+            min-width: 100%;
+          }
+          
+          .name-row { 
+            justify-content: center; 
+          }
+          
+          .contact-grid {
+            flex-direction: column;
+            text-align: left;
+            width: 100%;
+          }
+          
+          .contact-item {
+            flex: 1 1 100%;
+            min-width: 100%;
+          }
+          
+          .header-actions { 
+            width: 100%; 
+            order: 10;
+          }
+          
+          .header-actions button { 
+            flex: 1; 
+          }
+          
+          .stat-card { 
+            flex: 1 1 calc(50% - 10px);
+            min-width: 140px;
+            padding: 15px; 
+          }
+          
+          .stat-value { 
+            font-size: 20px; 
+          }
+          
+          .detail-card { 
+            flex: 1 1 100%;
+            min-width: 100%;
+            padding: 15px; 
+          }
+        }
+
+        /* Extra small mobile */
+        @media (max-width: 480px) {
+          .profile-container {
+            padding: 0 10px;
+          }
+          
+          .stat-card {
+            flex: 1 1 100%;
+            min-width: 100%;
+          }
+          
+          .name-row h1 {
+            font-size: 20px;
+          }
+        }
       `}</style>
     </div>
   );
