@@ -10,12 +10,19 @@ const tenantSchema = new mongoose.Schema(
         // Guardian / Emergency Contact
         guardianName: String,
         guardianPhone: String,
+        emergencyContactRelation: String, // Added
+
+        // Personal
+        dob: Date, // Added
+        workplaceName: String, // Added (Company/College)
+        workplaceAddress: String, // Added
 
         // Address & KYC
         permanentAddress: String,
         idProofType: { type: String, enum: ["aadhaar", "passport", "pan", "driving_license"] },
         idProofNumber: String,
         idProofUrl: String,
+        addressProofUrl: String, // Added (if separate from idProof, screenshot implies Address Proof)
         photoUrl: String,
 
         // Assignment
@@ -29,6 +36,10 @@ const tenantSchema = new mongoose.Schema(
         rentAmount: { type: Number, required: true },
         depositAmount: { type: Number, required: true },
         dueDay: { type: Number, default: 5 }, // Rent due on 5th of every month
+
+        // Check-in Info
+        checkInType: { type: String, enum: ["Web", "Walk-in", "Referral"], default: "Web" }, // Added
+        comments: String, // Added
 
         // Status & Dates
         status: {

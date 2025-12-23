@@ -11,6 +11,16 @@ export const createTenant = async (req, res) => {
     try {
         const { bed: bedId, property: propertyId, ...tenantData } = req.body;
 
+        // Extract file paths
+        let idProofUrl = "";
+        let addressProofUrl = "";
+
+        if (req.files) {
+            if (req.files.idProof) idProofUrl = `/uploads/${req.files.idProof[0].filename}`;
+            if (req.files.addressProof) addressProofUrl = `/uploads/${req.files.addressProof[0].filename}`;
+            // addressPhoto if needed
+        }
+
         // 1. Validate Property
         const property = await Property.findById(propertyId).session(session);
         if (!property) {
@@ -33,6 +43,13 @@ export const createTenant = async (req, res) => {
                     ...tenantData,
                     bed: bedId,
                     property: propertyId,
+                    // Auto-populate hierarchy from Bed
+                    room: bed.room,
+                    floor: bed.floor,
+                    block: bed.block,
+
+                    idProofUrl,
+                    addressProofUrl,
                     status: "active",
                 },
             ],

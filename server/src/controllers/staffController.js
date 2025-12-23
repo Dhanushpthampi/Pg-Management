@@ -24,6 +24,22 @@ export const getStaff = async (req, res) => {
     }
 };
 
+// @desc    Get single staff
+// @route   GET /api/staff/:id
+// @access  Public
+export const getStaffById = async (req, res) => {
+    try {
+        const staff = await Staff.findById(req.params.id);
+        if (staff) {
+            res.json(staff);
+        } else {
+            res.status(404).json({ message: "Staff not found" });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 // @desc    Update staff
 // @route   PUT /api/staff/:id
 // @access  Public

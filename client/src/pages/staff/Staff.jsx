@@ -1,7 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import api from "../../api/axios";
-import FilterBar from "../../components/FilterBar";
+import { UserPlus } from "lucide-react";
+import PageHeader from "../../components/PageHeader";
+import SearchBar from "../../components/SearchBar";
 
 const Staff = () => {
   const navigate = useNavigate();
@@ -50,60 +52,95 @@ const Staff = () => {
     }
   };
 
-  const filterConfig = [
-    {
-      key: "role",
-      label: "All Roles",
-      options: [
-        { value: "admin", label: "Admin" },
-        { value: "manager", label: "Manager" },
-        { value: "staff", label: "Staff" },
-        { value: "vendor", label: "Vendor" }
-      ]
-    }
-  ];
-
   return (
-    <div>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 20 }}>
-        <h1>Staff</h1>
-        <button onClick={() => navigate("/staff/new")}>+ Add Staff</button>
-      </div>
-
-      <FilterBar
-        searchPlaceholder="Search Staff (Name, Email, Phone)"
-        onSearch={(val) => setFilters({ ...filters, search: val })}
-        filters={filterConfig}
-        onFilterChange={(key, val) => setFilters({ ...filters, [key]: val })}
+    <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+      <PageHeader
+        title="Staff"
+        action={
+          <button className="btn btn-primary" onClick={() => navigate("/staff/new")}>
+            <UserPlus size={18} /> Add Staff
+          </button>
+        }
       />
 
-      <table width="100%" border="1" cellPadding="10">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Role</th>
-            <th>Phone</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredStaff.map((staff) => (
-            <tr key={staff._id}>
-              <td>{staff.name}</td>
-              <td>{staff.email}</td>
-              <td>{staff.role}</td>
-              <td>{staff.phone}</td>
-              <td>
-                <div style={{ display: 'flex', gap: '5px' }}>
-                  <button onClick={() => navigate(`/staff/${staff._id}/edit`)}>Edit</button>
-                  <button onClick={() => handleDelete(staff._id)} style={{ backgroundColor: '#ff4444', color: 'white' }}>Delete</button>
-                </div>
-              </td>
+      <div className="filter-container">
+        <SearchBar
+          value={filters.search}
+          onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+          placeholder="Search Staff (Name, Email, Phone)"
+        />
+
+        <select
+          value={filters.role}
+          onChange={(e) => setFilters({ ...filters, role: e.target.value })}
+          style={{ minWidth: 150 }}
+        >
+          <option value="">All Roles</option>
+          <option value="admin">Admin</option>
+          <option value="manager">Manager</option>
+          <option value="staff">Staff</option>
+          <option value="vendor">Vendor</option>
+        </select>
+      </div>
+
+      <div className="data-table-container">
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Phone</th>
+              <th>Action</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {filteredStaff.map((staff) => (
+              <tr key={staff._id}>
+                <td style={{ fontWeight: 500 }}>{staff.name}</td>
+                <td>{staff.email}</td>
+                <td>
+                  <span className="badge neutral" style={{ textTransform: 'capitalize' }}>
+                    {staff.role}
+                  </span>
+                </td>
+                <td>{staff.phone}</td>
+                <td>
+                  <div className="flex-gap">
+                    <button
+                      className="btn btn-secondary"
+                      style={{ padding: "4px 8px", fontSize: 12 }}
+                      onClick={() => navigate(`/staff/${staff._id}/edit`)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="btn btn-danger"
+                      style={{ padding: "4px 8px", fontSize: 12 }}
+                      onClick={() => handleDelete(staff._id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+            {filteredStaff.length === 0 && (
+              <tr><td colSpan="5" style={{ textAlign: "center", padding: 30, color: "var(--secondary)" }}>No staff found.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <style>{`
+        .filter-container {
+          display: flex;
+          gap: 15px;
+          margin-bottom: 24px;
+          flex-wrap: wrap;
+          align-items: center;
+        }
+      `}</style>
     </div>
   );
 };

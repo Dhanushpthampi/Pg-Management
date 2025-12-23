@@ -1,22 +1,20 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import api from "../../api/axios";
-import FilterBar from "../../components/FilterBar";
+import { Plus, Building } from "lucide-react";
+import PageHeader from "../../components/PageHeader";
+import SearchBar from "../../components/SearchBar";
 
 const Properties = () => {
   const navigate = useNavigate();
+  const [allProperties, setAllProperties] = useState([]);
   const [properties, setProperties] = useState([]);
   const [query, setQuery] = useState({ search: "", city: "", status: "" });
 
   const fetchProperties = async () => {
     try {
-      const params = new URLSearchParams(query);
-      // Remove empty params
-      for (const [key, value] of params.entries()) {
-        if (!value) params.delete(key);
-      }
-
-      const { data } = await api.get(`/properties?${params.toString()}`);
+      const { data } = await api.get("/properties");
+      setAllProperties(data);
       setProperties(data);
     } catch (error) {
       console.error("Failed to fetch properties", error);
@@ -24,21 +22,35 @@ const Properties = () => {
   };
 
   useEffect(() => {
-    const debounce = setTimeout(() => {
-      fetchProperties();
-    }, 500); // 500ms debounce for search
-    return () => clearTimeout(debounce);
-  }, [query]);
+    fetchProperties();
+  }, []);
 
-  const handleFilterChange = (key, value) => {
-    setQuery({ ...query, [key]: value });
-  };
+  // Filter local data
+  useEffect(() => {
+    let filtered = allProperties;
+
+    if (query.city) {
+      filtered = filtered.filter(p => p.city === query.city);
+    }
+    if (query.status) {
+      filtered = filtered.filter(p => p.status === query.status);
+    }
+    if (query.search) {
+      const lowerSearch = query.search.toLowerCase();
+      filtered = filtered.filter(p =>
+        p.name.toLowerCase().includes(lowerSearch) ||
+        (p.address && p.address.toLowerCase().includes(lowerSearch))
+      );
+    }
+
+    setProperties(filtered);
+  }, [query, allProperties]);
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to deactivate this property?")) {
       try {
         await api.delete(`/properties/${id}`);
-        fetchProperties(); // Refresh list
+        fetchProperties();
       } catch (err) {
         console.error(err);
         alert("Failed to delete property");
@@ -46,74 +58,104 @@ const Properties = () => {
     }
   };
 
-  const filterConfig = [
-    {
-      key: "city",
-      label: "All Cities",
-      options: [
-        { value: "Bangalore", label: "Bangalore" },
-        { value: "Mysore", label: "Mysore" }
-      ]
-    },
-    {
-      key: "status",
-      label: "All Status",
-      options: [
-        { value: "active", label: "Active" },
-        { value: "inactive", label: "Inactive" }
-      ]
-    }
-  ];
-
   return (
-    <div>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 20 }}>
-        <h1>Properties</h1>
-        <button onClick={() => navigate("/properties/new")}>+ Add Property</button>
-      </div>
-
-      <FilterBar
-        searchPlaceholder="Search Property (Name, Address)"
-        onSearch={(val) => setQuery({ ...query, search: val })}
-        filters={filterConfig}
-        onFilterChange={handleFilterChange}
+    <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+      <PageHeader
+        title="Properties"
+        action={
+          <button className="btn btn-primary" onClick={() => navigate("/properties/new")}>
+            <Plus size={18} /> Add Property
+          </button>
+        }
       />
 
-      <table width="100%" border="1" cellPadding="10">
-        <thead>
-          <tr>
-            <th>Property Name</th>
-            <th>City</th>
-            <th>Contact Person</th>
-            <th>Status</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {properties.map((property) => (
-            <tr key={property._id}>
-              <td>{property.name}</td>
-              <td>{property.city}</td>
-              <td>{property.contactPerson || "N/A"}</td>
-              <td>
-                <span style={{
-                  color: property.status === 'active' ? 'green' : 'red',
-                  fontWeight: 'bold'
-                }}>
-                  {property.status.toUpperCase()}
-                </span>
-              </td>
-              <td>
-                <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
-                  <button onClick={() => navigate(`/properties/${property._id}/manage`)} style={{ backgroundColor: '#2196F3', color: 'white' }}>Manage</button>
-                  <button onClick={() => navigate(`/properties/${property._id}/edit`)}>Edit</button>
-                  <button onClick={() => handleDelete(property._id)} style={{ backgroundColor: '#ff4444', color: 'white' }}>Delete</button>
-                </div>
-              </td>
+      <div className="filter-container">
+        <SearchBar
+          value={query.search}
+          onChange={(e) => setQuery({ ...query, search: e.target.value })}
+          placeholder="Search Property..."
+        />
+
+        <select
+          value={query.city}
+          onChange={(e) => setQuery({ ...query, city: e.target.value })}
+          style={{ minWidth: 150 }}
+        >
+          <option value="">All Cities</option>
+          <option value="Bangalore">Bangalore</option>
+          <option value="Mysore">Mysore</option>
+        </select>
+
+        <select
+          value={query.status}
+          onChange={(e) => setQuery({ ...query, status: e.target.value })}
+          style={{ minWidth: 150 }}
+        >
+          <option value="">All Status</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </div>
+
+      <div className="data-table-container">
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>Property Name</th>
+              <th>City</th>
+              <th>Contact Person</th>
+              <th>Status</th>
+              <th>Action</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {properties.map((property) => (
+              <tr key={property._id}>
+                <td>
+                  <div style={{ fontWeight: 500, display: "flex", alignItems: "center", gap: 8 }}>
+                    <Building size={16} color="var(--secondary)" />
+                    {property.name}
+                  </div>
+                  <div className="text-sm">{property.address}</div>
+                </td>
+                <td>{property.city}</td>
+                <td>{property.contactPerson || "N/A"}</td>
+                <td>
+                  <span className={`badge ${property.status === 'active' ? 'success' : 'danger'}`}>
+                    {property.status.toUpperCase()}
+                  </span>
+                </td>
+                <td>
+                  <div className="flex-gap">
+                    <button className="btn btn-secondary" style={{ padding: "4px 8px", fontSize: 12 }} onClick={() => navigate(`/properties/${property._id}/manage`)}>Manage</button>
+                    <button className="btn btn-secondary" style={{ padding: "4px 8px", fontSize: 12 }} onClick={() => navigate(`/properties/${property._id}/edit`)}>Edit</button>
+                    <button
+                      className="btn btn-danger"
+                      style={{ padding: "4px 8px", fontSize: 12 }}
+                      onClick={() => handleDelete(property._id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+            {properties.length === 0 && (
+              <tr><td colSpan="5" style={{ textAlign: "center", padding: 30, color: "var(--secondary)" }}>No properties found.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <style>{`
+        .filter-container {
+          display: flex;
+          gap: 15px;
+          margin-bottom: 24px;
+          flex-wrap: wrap;
+          align-items: center;
+        }
+      `}</style>
     </div>
   );
 };

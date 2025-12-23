@@ -13,6 +13,7 @@ const bookingSchema = new mongoose.Schema(
 
         joiningDate: { type: Date, required: true },
         amount: { type: Number, required: true },
+        comments: String, // Added field
 
         status: {
             type: String,

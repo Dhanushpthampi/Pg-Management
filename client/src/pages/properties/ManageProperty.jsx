@@ -15,7 +15,7 @@ const ManageProperty = () => {
     // Form states
     const [blockForm, setBlockForm] = useState({ name: "" });
     const [floorForm, setFloorForm] = useState({ name: "", blockId: "" });
-    const [roomForm, setRoomForm] = useState({ number: "", floorId: "", sharingType: "single", blockId: "" });
+    const [roomForm, setRoomForm] = useState({ number: "", floorId: "", sharingType: "single", blockId: "", rent: "", deposit: "" });
     const [bedForm, setBedForm] = useState({ roomId: "", count: 1, startNumber: 1 });
 
     // Dropdown data
@@ -109,6 +109,10 @@ const ManageProperty = () => {
             await api.post("/hierarchy/rooms", {
                 number: roomForm.number,
                 floor: roomForm.floorId,
+                block: roomForm.blockId,
+                property: id,
+                rent: Number(roomForm.rent),
+                deposit: Number(roomForm.deposit),
                 sharingType: roomForm.sharingType
             });
             alert("Room added successfully");
@@ -117,7 +121,7 @@ const ManageProperty = () => {
             setSelectedFloor(roomForm.floorId);
             fetchRooms(roomForm.floorId);
 
-            setRoomForm({ number: "", floorId: "", sharingType: "single", blockId: "" });
+            setRoomForm({ number: "", floorId: "", sharingType: "single", blockId: "", rent: "", deposit: "" });
             setShowAddModal(null);
             fetchData();
         } catch (err) {
@@ -500,6 +504,24 @@ const ManageProperty = () => {
                                 required
                                 style={{ padding: 10, borderRadius: 4, border: "1px solid #ddd" }}
                             />
+                            <div style={{ display: "flex", gap: 10 }}>
+                                <input
+                                    type="number"
+                                    placeholder="Rent"
+                                    value={roomForm.rent}
+                                    onChange={(e) => setRoomForm({ ...roomForm, rent: e.target.value })}
+                                    required
+                                    style={{ padding: 10, borderRadius: 4, border: "1px solid #ddd", flex: 1 }}
+                                />
+                                <input
+                                    type="number"
+                                    placeholder="Deposit"
+                                    value={roomForm.deposit}
+                                    onChange={(e) => setRoomForm({ ...roomForm, deposit: e.target.value })}
+                                    required
+                                    style={{ padding: 10, borderRadius: 4, border: "1px solid #ddd", flex: 1 }}
+                                />
+                            </div>
                             <select
                                 value={roomForm.sharingType}
                                 onChange={(e) => setRoomForm({ ...roomForm, sharingType: e.target.value })}

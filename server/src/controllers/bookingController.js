@@ -4,6 +4,20 @@ import Bed from "../models/Bed.js";
 // @desc    Create a booking
 // @route   POST /api/bookings
 // @access  Public
+// @desc    Update booking
+// @route   PUT /api/bookings/:id
+// @access  Public
+export const updateBooking = async (req, res) => {
+    try {
+        const booking = await Booking.findByIdAndUpdate(req.params.id, req.body, {
+            new: true,
+        });
+        res.json(booking);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
 export const createBooking = async (req, res) => {
     try {
         const { bed } = req.body;

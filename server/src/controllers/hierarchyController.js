@@ -55,8 +55,15 @@ export const addRoom = async (req, res) => {
 
 export const getRoomsByFloor = async (req, res) => {
     try {
-        const rooms = await Room.find({ floor: req.params.floorId });
-        res.json(rooms);
+        const rooms = await Room.find({ floor: req.params.floorId }).lean();
+
+        // Fetch beds for each room
+        const roomsWithBeds = await Promise.all(rooms.map(async (room) => {
+            const beds = await Bed.find({ room: room._id });
+            return { ...room, beds };
+        }));
+
+        res.json(roomsWithBeds);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

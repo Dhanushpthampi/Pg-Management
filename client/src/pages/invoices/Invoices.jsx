@@ -1,15 +1,21 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import api from "../../api/axios";
+import { Plus, Download } from "lucide-react";
+import PageHeader from "../../components/PageHeader";
+import SearchBar from "../../components/SearchBar";
 
 const Invoices = () => {
   const navigate = useNavigate();
+  const [allInvoices, setAllInvoices] = useState([]);
   const [invoices, setInvoices] = useState([]);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     const fetchInvoices = async () => {
       try {
         const { data } = await api.get("/invoices");
+        setAllInvoices(data);
         setInvoices(data);
       } catch (error) {
         console.error("Failed to fetch invoices", error);
@@ -18,43 +24,108 @@ const Invoices = () => {
     fetchInvoices();
   }, []);
 
+  useEffect(() => {
+    if (!search) {
+      setInvoices(allInvoices);
+    } else {
+      const s = search.toLowerCase();
+      setInvoices(allInvoices.filter(i =>
+        (i.tenant?.name && i.tenant.name.toLowerCase().includes(s)) ||
+        (i.property?.name && i.property.name.toLowerCase().includes(s))
+      ));
+    }
+  }, [search, allInvoices]);
+
+  const handleDownload = (invoice) => {
+    const printContent = `
+      Invoice ID: ${invoice._id}
+      Tenant: ${invoice.tenant?.name}
+      Month: ${invoice.month} ${invoice.year}
+      Amount: ${invoice.totalAmount}
+      Status: ${invoice.status}
+    `;
+    const newWindow = window.open('', '', 'width=600,height=600');
+    newWindow.document.write('<pre>' + printContent + '</pre>');
+    newWindow.document.close();
+    newWindow.print();
+  };
+
   return (
-    <div>
-      {/* Page Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 20 }}>
-        <h1>Invoices</h1>
-        <button onClick={() => navigate("/invoices/new")}>
-          + Create Invoice
-        </button>
+    <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+      <PageHeader
+        title="Invoices"
+        action={
+          <button className="btn btn-primary" onClick={() => navigate("/invoices/new")}>
+            <Plus size={18} /> Create Invoice
+          </button>
+        }
+      />
+
+      <div className="filter-container">
+        <SearchBar
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search Invoice (Tenant, Property)"
+        />
       </div>
 
-      <table width="100%" border="1" cellPadding="10">
-        <thead>
-          <tr>
-            <th>Month</th>
-            <th>Tenant</th>
-            <th>Amount</th>
-            <th>Status</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {invoices.map((invoice) => (
-            <tr key={invoice._id}>
-              <td>{invoice.month} {invoice.year}</td>
-              <td>{invoice.tenant?.name || "N/A"}</td>
-              <td>₹{invoice.totalAmount}</td>
-              <td>{invoice.status}</td>
-              <td>
-                <button onClick={() => navigate(`/invoices/${invoice._id}`)}>
-                  View
-                </button>
-              </td>
+      <div className="data-table-container">
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>Invoice Date</th>
+              <th>Tenant</th>
+              <th>Period</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Action</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+
+          <tbody>
+            {invoices.map((invoice) => (
+              <tr key={invoice._id}>
+                <td>{new Date(invoice.createdAt).toLocaleDateString()}</td>
+                <td>
+                  <div style={{ fontWeight: 500 }}>{invoice.tenant?.name || "N/A"}</div>
+                  <div className="text-sm">{invoice.property?.name}</div>
+                </td>
+                <td>{invoice.month} {invoice.year}</td>
+                <td style={{ fontWeight: "bold" }}>₹{invoice.totalAmount}</td>
+                <td>
+                  <span className={`badge ${invoice.status === 'Paid' ? 'success' : 'warning'}`}>
+                    {invoice.status}
+                  </span>
+                </td>
+                <td>
+                  <div className="flex-gap">
+                    <button
+                      className="btn btn-secondary"
+                      style={{ padding: "4px 8px", fontSize: 12 }}
+                      onClick={() => handleDownload(invoice)}
+                    >
+                      <Download size={12} /> Download
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+            {invoices.length === 0 && (
+              <tr><td colSpan="6" style={{ textAlign: "center", padding: 30, color: "var(--secondary)" }}>No invoices found.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <style>{`
+        .filter-container {
+          display: flex;
+          gap: 15px;
+          margin-bottom: 24px;
+          flex-wrap: wrap;
+          align-items: center;
+        }
+      `}</style>
     </div>
   );
 };

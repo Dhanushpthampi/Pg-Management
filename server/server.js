@@ -10,6 +10,7 @@ import staffRoutes from "./src/routes/staffRoutes.js";
 import complaintRoutes from "./src/routes/complaintRoutes.js";
 import invoiceRoutes from "./src/routes/invoiceRoutes.js";
 import checkoutRoutes from "./src/routes/checkoutRoutes.js";
+import dashboardRoutes from "./src/routes/dashboardRoutes.js";
 
 dotenv.config();
 
@@ -23,6 +24,7 @@ app.use(
 );
 
 app.use(express.json());
+app.use("/uploads", express.static("uploads"));
 
 app.get("/", (req, res) => {
   res.send("PG Management Backend Running 🚀");
@@ -36,6 +38,7 @@ app.use("/api/staff", staffRoutes);
 app.use("/api/complaints", complaintRoutes);
 app.use("/api/invoices", invoiceRoutes);
 app.use("/api/checkouts", checkoutRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 connectDB();
 
 const PORT = process.env.PORT || 5000;
