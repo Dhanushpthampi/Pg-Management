@@ -23,6 +23,7 @@ import ComplaintDetails from "../pages/complaints/ComplaintDetails";
 import Invoices from "../pages/invoices/Invoices";
 import NewInvoice from "../pages/invoices/NewInvoice";
 import InvoiceView from "../pages/invoices/InvoiceView";
+import CheckoutNoticeManagement from "../pages/checkout/CheckoutNoticeManagement";
 
 
 const AppRouter = () => {
@@ -50,6 +51,7 @@ const AppRouter = () => {
 
                     <Route path="/checkout" element={<Checkout />} />
                     <Route path="/checkout/:id/process" element={<ProcessCheckout />} />
+                    <Route path="/checkout-notice" element={<CheckoutNoticeManagement />} />
                     <Route path="/notice/:id" element={<RaiseNotice />} />
 
                     <Route path="/complaints" element={<Complaints />} />

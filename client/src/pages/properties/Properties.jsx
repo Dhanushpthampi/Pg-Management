@@ -13,7 +13,7 @@ const Properties = () => {
 
   const fetchProperties = async () => {
     try {
-      const { data } = await api.get("/properties");
+      const { data } = await api.get("/properties/stats");
       setAllProperties(data);
       setProperties(data);
     } catch (error) {
@@ -101,47 +101,55 @@ const Properties = () => {
         <table className="data-table">
           <thead>
             <tr>
-              <th>Property Name</th>
+              <th>Property</th>
               <th>City</th>
-              <th>Contact Person</th>
-              <th>Status</th>
+              <th>Number of Floors</th>
+              <th>Total Beds</th>
+              <th>Occupied</th>
+              <th>Manager</th>
               <th>Action</th>
             </tr>
           </thead>
           <tbody>
-            {properties.map((property) => (
-              <tr key={property._id}>
-                <td>
-                  <div style={{ fontWeight: 500, display: "flex", alignItems: "center", gap: 8 }}>
-                    <Building size={16} color="var(--secondary)" />
-                    {property.name}
-                  </div>
-                  <div className="text-sm">{property.address}</div>
-                </td>
-                <td>{property.city}</td>
-                <td>{property.contactPerson || "N/A"}</td>
-                <td>
-                  <span className={`badge ${property.status === 'active' ? 'success' : 'danger'}`}>
-                    {property.status.toUpperCase()}
-                  </span>
-                </td>
-                <td>
-                  <div className="flex-gap">
-                    <button className="btn btn-secondary" style={{ padding: "4px 8px", fontSize: 12 }} onClick={() => navigate(`/properties/${property._id}/manage`)}>Manage</button>
-                    <button className="btn btn-secondary" style={{ padding: "4px 8px", fontSize: 12 }} onClick={() => navigate(`/properties/${property._id}/edit`)}>Edit</button>
-                    <button
-                      className="btn btn-danger"
-                      style={{ padding: "4px 8px", fontSize: 12 }}
-                      onClick={() => handleDelete(property._id)}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {properties.map((property) => {
+              const stats = property.stats || { totalFloors: 0, totalBeds: 0, occupiedBeds: 0 };
+              return (
+                <tr key={property._id}>
+                  <td>
+                    <div style={{ fontWeight: 500, display: "flex", alignItems: "center", gap: 8 }}>
+                      <Building size={16} color="var(--secondary)" />
+                      {property.name}
+                    </div>
+                    <div className="text-sm">{property.address}</div>
+                  </td>
+                  <td>{property.city}</td>
+                  <td>{stats.totalFloors}</td>
+                  <td>{stats.totalBeds}</td>
+                  <td>
+                    <span style={{ fontWeight: 600, color: stats.occupiedBeds > 0 ? 'var(--primary)' : 'var(--secondary)' }}>
+                      {stats.occupiedBeds}
+                    </span>
+                    <span style={{ color: 'var(--secondary)', fontSize: 12 }}> / {stats.totalBeds}</span>
+                  </td>
+                  <td>{property.contactPerson || "N/A"}</td>
+                  <td>
+                    <div className="flex-gap">
+                      <button className="btn btn-secondary" style={{ padding: "4px 8px", fontSize: 12 }} onClick={() => navigate(`/properties/${property._id}/manage`)}>Manage</button>
+                      <button className="btn btn-secondary" style={{ padding: "4px 8px", fontSize: 12 }} onClick={() => navigate(`/properties/${property._id}/edit`)}>Edit</button>
+                      <button
+                        className="btn btn-danger"
+                        style={{ padding: "4px 8px", fontSize: 12 }}
+                        onClick={() => handleDelete(property._id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
             {properties.length === 0 && (
-              <tr><td colSpan="5" style={{ textAlign: "center", padding: 30, color: "var(--secondary)" }}>No properties found.</td></tr>
+              <tr><td colSpan="7" style={{ textAlign: "center", padding: 30, color: "var(--secondary)" }}>No properties found.</td></tr>
             )}
           </tbody>
         </table>

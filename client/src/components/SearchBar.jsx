@@ -13,18 +13,18 @@ const SearchBar = ({ value, onChange, placeholder = "Search..." }) => {
       />
 
       <style>{`
-
+        .search-bar {
+          position: relative;
+          flex: 1 1 auto;
+          min-width: 200px;
+          max-width: 350px;
+        }
         .search-icon {
           position: absolute;
           left: 12px;
           top: 50%;
           transform: translateY(-50%);
           color: #999;
-        }
-        .search-bar {
-          position: relative;
-          width: 100%;
-          max-width: 300px;
         }
         .search-bar input {
           width: 100%;

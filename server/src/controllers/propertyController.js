@@ -1,4 +1,6 @@
 import Property from "../models/Property.js";
+import Floor from "../models/Floor.js";
+import Bed from "../models/Bed.js";
 
 // @desc    Create a new property
 // @route   POST /api/properties
@@ -31,6 +33,44 @@ export const getProperties = async (req, res) => {
 
         const properties = await Property.find(query).sort({ createdAt: -1 });
         res.json(properties);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server Error" });
+    }
+};
+
+// @desc    Get all properties with statistics
+// @route   GET /api/properties/stats
+// @access  Public
+export const getPropertiesWithStats = async (req, res) => {
+    try {
+        const properties = await Property.find().sort({ createdAt: -1 });
+
+        // Get stats for each property
+        const propertiesWithStats = await Promise.all(properties.map(async (property) => {
+            // Count floors for this property
+            const floorCount = await Floor.countDocuments({ property: property._id });
+
+            // Count total beds for this property
+            const totalBeds = await Bed.countDocuments({ property: property._id });
+
+            // Count occupied beds for this property
+            const occupiedBeds = await Bed.countDocuments({
+                property: property._id,
+                status: 'occupied'
+            });
+
+            return {
+                ...property.toObject(),
+                stats: {
+                    totalFloors: floorCount,
+                    totalBeds: totalBeds,
+                    occupiedBeds: occupiedBeds
+                }
+            };
+        }));
+
+        res.json(propertiesWithStats);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Server Error" });

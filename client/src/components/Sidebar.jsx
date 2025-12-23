@@ -1,7 +1,7 @@
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard, Building, Users, CalendarCheck,
-  UserCog, MessageSquare, Receipt, LogOut
+  UserCog, MessageSquare, Receipt, LogOut, UserX
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -13,6 +13,7 @@ const Sidebar = () => {
     { to: "/staff", label: "Staff", icon: <UserCog size={20} /> },
     { to: "/complaints", label: "Complaints", icon: <MessageSquare size={20} /> },
     { to: "/invoices", label: "Invoices", icon: <Receipt size={20} /> },
+    { to: "/checkout-notice", label: "Checkout & Notice", icon: <UserX size={20} /> },
   ];
 
   return (
@@ -44,14 +45,16 @@ const Sidebar = () => {
           flex-direction: column;
           position: sticky;
           top: 0;
+          overflow: hidden;
         }
         .sidebar-header {
-          padding: 24px;
+          padding: 20px 24px;
           border-bottom: 1px solid var(--border-color);
         }
         .sidebar-header h2 {
           font-size: 20px;
           color: var(--primary);
+          margin: 0;
         }
         .sidebar-nav {
           padding: 20px 12px;
@@ -87,9 +90,8 @@ const Sidebar = () => {
           color: var(--primary);
           font-weight: 600;
         }
-        /* Removed Footer/Logout as requested */
       `}</style>
-    </div>
+    </div >
   );
 };
 

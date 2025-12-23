@@ -90,6 +90,7 @@ export const getTenants = async (req, res) => {
         }
 
         const tenants = await Tenant.find(query)
+            .populate("property")
             .populate("room")
             .populate("bed")
             .sort({ createdAt: -1 });

@@ -13,7 +13,7 @@ const FilterBar = ({
                 type="text"
                 placeholder={searchPlaceholder}
                 onChange={(e) => onSearch(e.target.value)}
-                style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc", minWidth: "200px" }}
+                style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc", minWidth: "150px" }}
             />
 
             {/* Dynamic Filters */}

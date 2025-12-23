@@ -10,11 +10,7 @@ const propertySchema = new mongoose.Schema(
     pincode: { type: String, required: true },
 
     amenities: [{ type: String }],
-    foodTypes: {
-      type: [String],
-      enum: ["veg", "non-veg", "both"],
-      default: ["both"],
-    },
+    mealTypes: [{ type: String }], // ["veg", "non-veg"] or just ["veg"] etc
     status: {
       type: String,
       enum: ["active", "inactive"],

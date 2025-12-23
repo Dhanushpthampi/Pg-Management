@@ -90,38 +90,46 @@ const Complaints = () => {
         <table className="data-table">
           <thead>
             <tr>
-              <th>Title</th>
+              <th>Ticket</th>
+              <th>Issue</th>
               <th>Category</th>
               <th>Priority</th>
               <th>Status</th>
-              <th>Raised By</th>
+              <th>Raised</th>
               <th>Action</th>
             </tr>
           </thead>
-
           <tbody>
             {complaints.map((complaint) => (
               <tr key={complaint._id}>
+                <td style={{ fontWeight: 500 }}>#{complaint._id.slice(-6).toUpperCase()}</td>
                 <td>
                   <div style={{ fontWeight: 500 }}>{complaint.title}</div>
-                  <div className="text-sm">{new Date(complaint.createdAt).toLocaleDateString()}</div>
+                  <div className="text-sm">{complaint.description?.substring(0, 50)}...</div>
                 </td>
-                <td>{complaint.category}</td>
                 <td>
-                  <span className={`badge ${complaint.priority === 'High' ? 'danger' :
-                      complaint.priority === 'Medium' ? 'warning' : 'success'
-                    }`}>
+                  <span className="badge neutral" style={{ textTransform: 'capitalize' }}>
+                    {complaint.category}
+                  </span>
+                </td>
+                <td>
+                  <span className={`badge ${complaint.priority === 'high' ? 'danger' :
+                      complaint.priority === 'medium' ? 'warning' : 'neutral'
+                    }`} style={{ textTransform: 'capitalize' }}>
                     {complaint.priority}
                   </span>
                 </td>
                 <td>
                   <span className={`badge ${complaint.status === 'resolved' ? 'success' :
                       complaint.status === 'in_progress' ? 'warning' : 'neutral'
-                    }`}>
-                    {complaint.status.replace("_", " ")}
+                    }`} style={{ textTransform: 'capitalize' }}>
+                    {complaint.status.replace('_', ' ')}
                   </span>
                 </td>
-                <td>{complaint.raisedBy?.name || "N/A"}</td>
+                <td>
+                  <div>{complaint.raisedBy?.name || "N/A"}</div>
+                  <div className="text-sm">{new Date(complaint.createdAt).toLocaleDateString()}</div>
+                </td>
                 <td>
                   <button
                     className="btn btn-secondary"
@@ -134,7 +142,7 @@ const Complaints = () => {
               </tr>
             ))}
             {complaints.length === 0 && (
-              <tr><td colSpan="6" style={{ textAlign: "center", padding: 30, color: "var(--secondary)" }}>No complaints found.</td></tr>
+              <tr><td colSpan="7" style={{ textAlign: "center", padding: 30, color: "var(--secondary)" }}>No complaints found.</td></tr>
             )}
           </tbody>
         </table>
