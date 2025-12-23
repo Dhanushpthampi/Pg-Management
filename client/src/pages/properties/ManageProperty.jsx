@@ -16,7 +16,7 @@ const ManageProperty = () => {
     const [blockForm, setBlockForm] = useState({ name: "" });
     const [floorForm, setFloorForm] = useState({ name: "", blockId: "" });
     const [roomForm, setRoomForm] = useState({ number: "", floorId: "", sharingType: "single", blockId: "", rent: "", deposit: "" });
-    const [bedForm, setBedForm] = useState({ roomId: "", count: 1, startNumber: 1 });
+    const [bedForm, setBedForm] = useState({ roomId: "", count: 1, startNumber: 1, blockId: "", floorId: "" });
 
     // Dropdown data
     const [blocks, setBlocks] = useState([]);
@@ -204,17 +204,18 @@ const ManageProperty = () => {
         minWidth: "160px"
     };
 
-    const gridItemStyle = {
-        border: "1px solid #333",
+    const getGridItemStyle = (isActive) => ({
+        border: isActive ? "2px solid #2196F3" : "1px solid #333",
         borderRadius: "8px",
         padding: "15px 20px",
         textAlign: "center",
         cursor: "pointer",
         fontSize: "16px",
         fontWeight: "500",
-        backgroundColor: "#fff",
-        minWidth: "60px"
-    };
+        backgroundColor: isActive ? "#E3F2FD" : "#fff",
+        minWidth: "60px",
+        color: isActive ? "#1565C0" : "inherit"
+    });
 
     const addButtonStyle = {
         width: "40px",
@@ -232,10 +233,11 @@ const ManageProperty = () => {
     return (
         <div style={{ padding: "20px", maxWidth: "1200px", margin: "0 auto" }}>
             <BackButton />
-            <h1>Bed Availability - {property?.name}</h1>
+            <h1 style={{ paddingBottom: "20px" }}>Bed Availability - {property?.name}</h1>
 
             {/* Sharing Type Filters */}
-            <div style={{ display: "flex", gap: "10px", marginBottom: "20px", flexWrap: "wrap" }}>
+
+            {/* <div style={{ display: "flex", gap: "10px", marginBottom: "20px", flexWrap: "wrap" }}>
                 {sharingTypes.map(type => (
                     <button
                         key={type}
@@ -245,7 +247,7 @@ const ManageProperty = () => {
                         {type}
                     </button>
                 ))}
-            </div>
+            </div> */}
 
             {/* Status Legend */}
             <div style={{ display: "flex", gap: "20px", marginBottom: "30px", alignItems: "center" }}>
@@ -268,7 +270,7 @@ const ManageProperty = () => {
             </div>
 
             {/* Dropdown Selectors */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "20px", marginBottom: "40px" }}>
+            {/* <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "20px", marginBottom: "40px" }}>
                 <div style={cardStyle}>
                     <h3 style={{ margin: "0 0 10px 0", fontSize: "16px" }}>Blocks</h3>
                     <select
@@ -325,7 +327,7 @@ const ManageProperty = () => {
                         <option value="">Select a room</option>
                     </select>
                 </div>
-            </div>
+            </div> */}
 
             {/* Grid Views */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "30px" }}>
@@ -335,10 +337,13 @@ const ManageProperty = () => {
                         <h3 style={{ margin: 0, fontSize: "18px" }}>Blocks</h3>
                         <button onClick={() => setShowAddModal('block')} style={addButtonStyle}>+</button>
                     </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))", gap: "10px" }}>
                         {blocks.map(block => (
-                            <div key={block._id} style={gridItemStyle} onClick={() => {
+                            <div key={block._id} style={getGridItemStyle(selectedBlock === block._id)} onClick={() => {
                                 setSelectedBlock(block._id);
+                                setSelectedFloor(""); // Clear selected floor
+                                setSelectedRoom(""); // Clear selected room
+                                setRooms([]); // Clear rooms list
                                 fetchFloors(block._id);
                             }}>
                                 {block.name}
@@ -351,12 +356,16 @@ const ManageProperty = () => {
                 <div style={cardStyle}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
                         <h3 style={{ margin: 0, fontSize: "18px" }}>Floors</h3>
-                        <button onClick={() => setShowAddModal('floor')} style={addButtonStyle}>+</button>
+                        <button onClick={() => {
+                            setFloorForm(prev => ({ ...prev, blockId: selectedBlock }));
+                            setShowAddModal('floor');
+                        }} style={addButtonStyle}>+</button>
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
                         {floors.map(floor => (
-                            <div key={floor._id} style={gridItemStyle} onClick={() => {
+                            <div key={floor._id} style={getGridItemStyle(selectedFloor === floor._id)} onClick={() => {
                                 setSelectedFloor(floor._id);
+                                setSelectedRoom(""); // Clear selected room
                                 fetchRooms(floor._id);
                             }}>
                                 {floor.name}
@@ -369,11 +378,14 @@ const ManageProperty = () => {
                 <div style={cardStyle}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
                         <h3 style={{ margin: 0, fontSize: "18px" }}>Rooms</h3>
-                        <button onClick={() => setShowAddModal('room')} style={addButtonStyle}>+</button>
+                        <button onClick={() => {
+                            setRoomForm(prev => ({ ...prev, blockId: selectedBlock, floorId: selectedFloor }));
+                            setShowAddModal('room');
+                        }} style={addButtonStyle}>+</button>
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
                         {rooms.map(room => (
-                            <div key={room._id} style={gridItemStyle} onClick={() => setSelectedRoom(room._id)}>
+                            <div key={room._id} style={getGridItemStyle(selectedRoom === room._id)} onClick={() => setSelectedRoom(room._id)}>
                                 {room.number}
                             </div>
                         ))}
@@ -384,13 +396,16 @@ const ManageProperty = () => {
                 <div style={cardStyle}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
                         <h3 style={{ margin: 0, fontSize: "18px" }}>Beds</h3>
-                        <button onClick={() => setShowAddModal('bed')} style={addButtonStyle}>+</button>
+                        <button onClick={() => {
+                            setBedForm(prev => ({ ...prev, blockId: selectedBlock, floorId: selectedFloor, roomId: selectedRoom }));
+                            setShowAddModal('bed');
+                        }} style={addButtonStyle}>+</button>
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
                         {selectedRoom && rooms.find(r => r._id === selectedRoom)?.beds?.map(bed => (
                             <div
                                 key={bed._id}
-                                style={{ ...gridItemStyle, backgroundColor: getBedColor(bed.status), color: "#fff" }}
+                                style={{ ...getGridItemStyle(false), backgroundColor: getBedColor(bed.status), color: "#fff", border: "none" }}
                                 onClick={() => handleBedClick(bed, rooms.find(r => r._id === selectedRoom))}
                             >
                                 {bed.number}
@@ -407,7 +422,7 @@ const ManageProperty = () => {
                     backgroundColor: "rgba(0,0,0,0.5)", display: "flex",
                     alignItems: "center", justifyContent: "center", zIndex: 1000
                 }}>
-                    <div style={{ backgroundColor: "#fff", padding: 30, borderRadius: 12, minWidth: 400 }}>
+                    <div style={{ backgroundColor: "#fff", padding: 30, borderRadius: 12, width: "90%", maxWidth: 400 }}>
                         <h2>Add Block</h2>
                         <form onSubmit={addBlock} style={{ display: "flex", flexDirection: "column", gap: 15 }}>
                             <input
@@ -552,9 +567,10 @@ const ManageProperty = () => {
                         <h2>Add Beds (Bulk)</h2>
                         <form onSubmit={addBeds} style={{ display: "flex", flexDirection: "column", gap: 15 }}>
                             <select
+                                value={bedForm.blockId}
                                 onChange={(e) => {
                                     fetchFloors(e.target.value);
-                                    setBedForm({ ...bedForm, roomId: "" });
+                                    setBedForm({ ...bedForm, blockId: e.target.value, floorId: "", roomId: "" });
                                 }}
                                 style={{ padding: 10, borderRadius: 4, border: "1px solid #ddd" }}
                             >
@@ -562,9 +578,10 @@ const ManageProperty = () => {
                                 {blocks.map(block => <option key={block._id} value={block._id}>{block.name}</option>)}
                             </select>
                             <select
+                                value={bedForm.floorId}
                                 onChange={(e) => {
                                     fetchRooms(e.target.value);
-                                    setBedForm({ ...bedForm, roomId: "" });
+                                    setBedForm({ ...bedForm, floorId: e.target.value, roomId: "" });
                                 }}
                                 style={{ padding: 10, borderRadius: 4, border: "1px solid #ddd" }}
                             >

@@ -192,6 +192,7 @@ const CheckoutNoticeManagement = () => {
           gap: 0;
           margin-bottom: 24px;
           border-bottom: 1px solid var(--border-color);
+          overflow-x: auto; /* Allow tabs to scroll on very small screens */
         }
         .tab-btn {
           padding: 12px 24px;
@@ -203,6 +204,7 @@ const CheckoutNoticeManagement = () => {
           font-weight: 500;
           color: var(--secondary);
           transition: all 0.2s;
+          white-space: nowrap;
         }
         .tab-btn:hover {
           color: var(--primary);
@@ -214,6 +216,8 @@ const CheckoutNoticeManagement = () => {
         .search-container {
           position: relative;
           margin-bottom: 24px;
+          width: 100%;
+          max-width: 400px; /* Limit width on desktop */
         }
         .search-icon-custom {
           position: absolute;
@@ -233,9 +237,21 @@ const CheckoutNoticeManagement = () => {
           outline: none;
           border-color: var(--primary);
         }
+        
+        @media (max-width: 768px) {
+          .search-container {
+            max-width: 82%; /* Full width on mobile */
+          }
+          .tab-btn {
+            padding: 12px 16px; /* Smaller padding on mobile */
+            flex: 1; /* Distribute space evenly? or just scroll */
+            text-align: center;
+          }
+        }
       `}</style>
         </div>
     );
 };
+
 
 export default CheckoutNoticeManagement;

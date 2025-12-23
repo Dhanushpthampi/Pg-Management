@@ -28,10 +28,7 @@ const AddStaff = () => {
       console.error(error);
       alert("Failed to add staff");
     }
-  };
-//   const pattern = /^[0-9]{5}$/; // Example: Exactly 5 digits
-// if (pattern.test(inputField.value)) { /* Valid */ }
-
+  }; 
   return (
     <div style={{ maxWidth: 600, margin: "0 auto" }}>
       <button
@@ -62,8 +59,7 @@ const AddStaff = () => {
               name="phone"
               placeholder="Ex: 9876543210"
               onChange={handleChange}
-              required
-              pattern="^[0-9]{5}$"
+              required 
             />
           </div>
 

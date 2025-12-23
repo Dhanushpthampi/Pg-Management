@@ -26,44 +26,53 @@ import InvoiceView from "../pages/invoices/InvoiceView";
 import CheckoutNoticeManagement from "../pages/checkout/CheckoutNoticeManagement";
 
 
+import { AuthProvider } from "../context/AuthContext";
+import ProtectedRoute from "../components/ProtectedRoute";
+import Login from "../pages/Login";
+
 const AppRouter = () => {
     return (
         <BrowserRouter>
-            <Routes>
-                <Route element={<MainLayout />}>
-                    <Route path="/" element={<Dashboard />} />
+            <AuthProvider>
+                <Routes>
+                    <Route path="/login" element={<Login />} />
 
-                    <Route path="/properties" element={<Properties />} />
-                    <Route path="/properties/new" element={<AddProperty />} />
-                    <Route path="/properties/:id/edit" element={<EditProperty />} />
-                    <Route path="/properties/:id/manage" element={<ManageProperty />} />
+                    <Route element={<ProtectedRoute />}>
+                        <Route element={<MainLayout />}>
+                            <Route path="/" element={<Dashboard />} />
 
-                    <Route path="/tenants" element={<Tenants />} />
-                    <Route path="/tenants/:id" element={<TenantDetails />} />
-                    <Route path="/checkin" element={<CheckIn />} />
+                            <Route path="/properties" element={<Properties />} />
+                            <Route path="/properties/new" element={<AddProperty />} />
+                            <Route path="/properties/:id/edit" element={<EditProperty />} />
+                            <Route path="/properties/:id/manage" element={<ManageProperty />} />
 
-                    <Route path="/bookings" element={<Bookings />} />
-                    <Route path="/bookings/new" element={<NewBooking />} />
+                            <Route path="/tenants" element={<Tenants />} />
+                            <Route path="/tenants/:id" element={<TenantDetails />} />
+                            <Route path="/checkin" element={<CheckIn />} />
 
-                    <Route path="/staff" element={<Staff />} />
-                    <Route path="/staff/new" element={<AddStaff />} />
-                    <Route path="/staff/:id/edit" element={<EditStaff />} />
+                            <Route path="/bookings" element={<Bookings />} />
+                            <Route path="/bookings/new" element={<NewBooking />} />
 
-                    <Route path="/checkout" element={<Checkout />} />
-                    <Route path="/checkout/:id/process" element={<ProcessCheckout />} />
-                    <Route path="/checkout-notice" element={<CheckoutNoticeManagement />} />
-                    <Route path="/notice/:id" element={<RaiseNotice />} />
+                            <Route path="/staff" element={<Staff />} />
+                            <Route path="/staff/new" element={<AddStaff />} />
+                            <Route path="/staff/:id/edit" element={<EditStaff />} />
 
-                    <Route path="/complaints" element={<Complaints />} />
-                    <Route path="/complaints/new" element={<NewComplaint />} />
-                    <Route path="/complaints/:id" element={<ComplaintDetails />} />
+                            <Route path="/checkout" element={<Checkout />} />
+                            <Route path="/checkout/:id/process" element={<ProcessCheckout />} />
+                            <Route path="/checkout-notice" element={<CheckoutNoticeManagement />} />
+                            <Route path="/notice/:id" element={<RaiseNotice />} />
 
-                    <Route path="/invoices" element={<Invoices />} />
-                    <Route path="/invoices/new" element={<NewInvoice />} />
-                    <Route path="/invoices/:id" element={<InvoiceView />} />
+                            <Route path="/complaints" element={<Complaints />} />
+                            <Route path="/complaints/new" element={<NewComplaint />} />
+                            <Route path="/complaints/:id" element={<ComplaintDetails />} />
 
-                </Route>
-            </Routes>
+                            <Route path="/invoices" element={<Invoices />} />
+                            <Route path="/invoices/new" element={<NewInvoice />} />
+                            <Route path="/invoices/:id" element={<InvoiceView />} />
+                        </Route>
+                    </Route>
+                </Routes>
+            </AuthProvider>
         </BrowserRouter>
     );
 };

@@ -38,6 +38,28 @@ export const getComplaints = async (req, res) => {
     }
 };
 
+// @desc    Get single complaint
+// @route   GET /api/complaints/:id
+// @access  Public (Admin/Staff/Tenant)
+export const getComplaintById = async (req, res) => {
+    try {
+        const complaint = await Complaint.findById(req.params.id)
+            .populate("property")
+            .populate("room")
+            .populate("bed")
+            .populate("raisedBy", "name phone")
+            .populate("assignedTo", "name role");
+
+        if (!complaint) {
+            return res.status(404).json({ message: "Complaint not found" });
+        }
+
+        res.json(complaint);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 // @desc    Update complaint status/assignment
 // @route   PUT /api/complaints/:id
 // @access  Public (Admin/Staff)

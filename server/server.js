@@ -12,6 +12,10 @@ import invoiceRoutes from "./src/routes/invoiceRoutes.js";
 import checkoutRoutes from "./src/routes/checkoutRoutes.js";
 import dashboardRoutes from "./src/routes/dashboardRoutes.js";
 
+import authRoutes from "./src/routes/authRoutes.js";
+import { protect } from "./src/middleware/authMiddleware.js";
+import User from "./src/models/User.js";
+
 dotenv.config();
 
 const app = express();
@@ -30,16 +34,39 @@ app.get("/", (req, res) => {
   res.send("PG Management Backend Running 🚀");
 });
 
-app.use("/api/properties", propertyRoutes);
-app.use("/api/hierarchy", hierarchyRoutes);
-app.use("/api/tenants", tenantRoutes);
-app.use("/api/bookings", bookingRoutes);
-app.use("/api/staff", staffRoutes);
-app.use("/api/complaints", complaintRoutes);
-app.use("/api/invoices", invoiceRoutes);
-app.use("/api/checkouts", checkoutRoutes);
-app.use("/api/dashboard", dashboardRoutes);
-connectDB();
+app.use("/api/auth", authRoutes);
+
+// Protect all other routes
+app.use("/api/properties", protect, propertyRoutes);
+app.use("/api/hierarchy", protect, hierarchyRoutes);
+app.use("/api/tenants", protect, tenantRoutes);
+app.use("/api/bookings", protect, bookingRoutes);
+app.use("/api/staff", protect, staffRoutes);
+app.use("/api/complaints", protect, complaintRoutes);
+app.use("/api/invoices", protect, invoiceRoutes);
+app.use("/api/checkouts", protect, checkoutRoutes);
+app.use("/api/dashboard", protect, dashboardRoutes);
+
+const seedAdmin = async () => {
+  try {
+    const adminExists = await User.findOne({ email: "admin@gullypg.com" });
+    if (!adminExists) {
+      await User.create({
+        name: "Admin",
+        email: "admin@gullypg.com",
+        password: "admin123", // Will be hashed by pre-save hook
+        role: "admin"
+      });
+      console.log("Default Admin created: admin@gullypg.com / admin123");
+    }
+  } catch (error) {
+    console.error("Seeding error:", error);
+  }
+};
+
+connectDB().then(() => {
+  seedAdmin();
+});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

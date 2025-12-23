@@ -294,7 +294,7 @@ const CheckIn = () => {
             <h3>Allocate a bed/room to your tenant.</h3>
             <div className="form-group">
               <label>Mobile Number</label>
-              <div style={{ display: 'flex', gap: 10 }}>
+              <div className="phone-group">
                 <input
                   type="text"
                   name="phone"
@@ -303,7 +303,7 @@ const CheckIn = () => {
                   placeholder="+91"
                   style={{ flex: 1 }}
                 />
-                <button type="button" onClick={() => setOtpSent(true)} disabled={!formData.phone}>
+                <button type="button" className="secondary-btn" onClick={() => setOtpSent(true)} disabled={!formData.phone}>
                   {otpSent ? "Resend OTP" : "Get OTP"}
                 </button>
               </div>
@@ -324,9 +324,11 @@ const CheckIn = () => {
             )}
 
             {otpSent && (
-              <button className="primary-btn" onClick={handleNext} disabled={otp.length !== 6}>
-                Proceed
-              </button>
+              <div style={{ display: 'flex', justifyContent: 'center', marginTop: 20 }}>
+                <button className="primary-btn" onClick={handleNext} disabled={otp.length !== 6}>
+                  Proceed <ArrowRight size={16} />
+                </button>
+              </div>
             )}
           </div>
         )}
@@ -534,35 +536,101 @@ const CheckIn = () => {
       )}
 
       <style>{`
-            .checkin-page { max-width: 800px; margin: 0 auto; color: #333; }
-            .stepper { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; }
+            .checkin-page { max-width: 900px; margin: 0 auto; color: #333; } /* Slightly wider */
+            .stepper { display: flex; align-items: center; justify-content: space-between; margin-bottom: 40px; }
             .step-item { display: flex; align-items: center; gap: 8px; position: relative; flex: 1; }
-            .step-circle { width: 32px; height: 32px; border-radius: 50%; background: #eee; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #777; transition: 0.3s; z-index: 2; }
+            .step-circle { width: 36px; height: 36px; border-radius: 50%; background: #eee; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #777; transition: 0.3s; z-index: 2; }
             .step-line { flex: 1; height: 2px; background: #eee; margin: 0 10px; transition: 0.3s; }
             .step-item.active .step-circle { background: #4CAF50; color: white; }
             .step-item.active .step-line { background: #4CAF50; }
             .step-item.current .step-circle { border: 2px solid #2E7D32; }
             
-            .step-content { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+            .step-content { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 30px; }
             
-            .step-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-            .form-group { display: flex; flexDirection: column; gap: 5px; }
-            .form-group.full-width { grid-column: span 2; }
-            .form-group label { font-size: 14px; font-weight: 500; color: #555; }
-            .form-group input, .form-group select, .form-group textarea { padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; outline: none; }
-            .form-group input:focus { border-color: #4CAF50; }
-            
-            .step-actions { display: flex; justify-content: space-between; margin-top: 20px; }
-            .primary-btn { background: #333; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
-            .secondary-btn { background: transparent; border: 1px solid #ccc; padding: 10px 20px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
-            .submit-btn { background: #4CAF50; }
+            /* Step 1 tweaks */
+            .step-container { max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+            .phone-group { display: flex; gap: 15px; }
 
-            .upload-box { border: 2px dashed #ddd; padding: 15px; border-radius: 8px; text-align: center; cursor: pointer; display: flex; align-items: center; gap: 10px; color: #777; position: relative; }
+            /* Step 4 & General Form */
+            .step-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px 30px; }
+            .form-group { display: flex; flexDirection: column; gap: 8px; }
+            .form-group.full-width { grid-column: span 2; }
+            .form-group label { font-size: 14px; font-weight: 600; color: #444; margin-left: 2px; }
+            
+            /* Inputs */
+            .form-group input, .form-group select, .form-group textarea { 
+                padding: 12px 16px; 
+                border: 1px solid #e0e0e0; 
+                border-radius: 8px; 
+                font-size: 15px; 
+                outline: none; 
+                width: 100%; 
+                max-width: 100%; 
+                box-sizing: border-box; 
+                transition: all 0.2s;
+                background: #fff;
+            }
+            .form-group input:focus, .form-group select:focus, .form-group textarea:focus { 
+                border-color: #4CAF50; 
+                box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1); 
+            }
+            
+            /* Buttons */
+            .step-actions { display: flex; justify-content: space-between; margin-top: 40px; border-top: 1px solid #eee; padding-top: 24px; }
+            .primary-btn { background: #333; color: white; border: none; padding: 14px 28px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; }
+            .secondary-btn { background: white; border: 1px solid #ccc; color: #444; padding: 14px 28px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; }
+            .submit-btn { background: #4CAF50; }
+            .submit-btn:hover { background: #43A047; }
+            .secondary-btn:hover { background: #f5f5f5; }
+            .primary-btn:disabled { background: #e0e0e0; cursor: not-allowed; color: #999; }
+
+            .upload-box { border: 2px dashed #ddd; padding: 24px; border-radius: 8px; text-align: center; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 12px; color: #666; position: relative; background: #fafafa; transition: 0.2s; }
+            .upload-box:hover { border-color: #4CAF50; background: #f0fdf4; }
             .upload-box input { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 
-            .payment-summary { background: #f9f9f9; padding: 20px; border-radius: 8px; border: 1px solid #eee; margin-top: 20px; }
-            .summary-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; }
-            .summary-row.total { font-weight: bold; font-size: 16px; margin-top: 10px; color: #333; }
+            /* Payment Summary - Clean & Centered */
+            .payment-summary { 
+                background: #f8f9fa; 
+                padding: 30px; 
+                border-radius: 12px; 
+                border: 1px solid #eee; 
+                margin: 30px auto 0; /* Center horizontally */
+                max-width: 600px; /* Constrain width */
+                text-align: center;
+                            }
+            .summary-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 15px; color: #555; }
+            .summary-row.total { font-weight: 700; font-size: 20px; margin-top: 20px; color: #222; border-top: 1px solid #ddd; padding-top: 20px; }
+
+            @media (max-width: 768px) {
+              .step-grid { grid-template-columns: 1fr; gap: 20px; }
+              .form-group.full-width { grid-column: span 1; }
+              .step-content { padding: 20px; }
+              .stepper { overflow-x: auto; padding-bottom: 10px; }
+              .step-label { display: none; } 
+              .step-item.active .step-label { display: block; font-size: 12px; white-space: nowrap; }
+              .step-item { min-width: auto; flex: inherit; } 
+              .step-line { display: none; } 
+              .step-circle { width: 32px; height: 32px; font-size: 13px; }
+              .stepper { justify-content: space-between; gap: 10px; }
+              
+              .phone-group { flex-direction: column; gap: 10px; }
+              .phone-group button { width: 100%; padding: 12px; }
+              
+              .step-actions {
+                 flex-direction: column-reverse; /* Stack buttons, Back on bottom */
+                 gap: 15px;
+                 border-top: none;
+              }
+              .step-actions button {
+                 width: 100%;
+                 justify-content: center;
+              }
+              
+              .payment-summary {
+                 padding: 20px;
+              }
+              .summary-row { max-width: 100%; }
+            }
         `}</style>
     </div>
   );

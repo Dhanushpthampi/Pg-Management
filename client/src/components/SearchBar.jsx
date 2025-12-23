@@ -16,9 +16,9 @@ const SearchBar = ({ value, onChange, placeholder = "Search..." }) => {
         .search-bar {
           position: relative;
           flex: 1 1 auto;
-          min-width: 200px;
-          max-width: 350px;
-          margin-right: 100px;
+          min-width: 100px;
+          max-width: 250px;
+          margin-right:50px;
         }
         .search-icon {
           position: absolute;
@@ -28,8 +28,16 @@ const SearchBar = ({ value, onChange, placeholder = "Search..." }) => {
           color: #999;
         }
         .search-bar input {
-          width: 100%;
+          width: 95%;
           padding-left: 38px;
+        }
+        
+        @media (max-width: 768px) {
+          .search-bar {
+            max-width: 100%;
+            width: 50%;
+            margin-right: 40px;
+          }
         }
       `}</style>
     </div>
