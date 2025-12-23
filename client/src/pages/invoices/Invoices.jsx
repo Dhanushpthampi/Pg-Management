@@ -4,6 +4,7 @@ import api from "../../api/axios";
 import { Plus, Download } from "lucide-react";
 import PageHeader from "../../components/PageHeader";
 import SearchBar from "../../components/SearchBar";
+import { generateInvoiceHTML } from "../../utils/invoiceTemplate";
 
 const Invoices = () => {
   const navigate = useNavigate();
@@ -36,19 +37,12 @@ const Invoices = () => {
     }
   }, [search, allInvoices]);
 
-  const handleDownload = (invoice) => {
-    const printContent = `
-      Invoice ID: ${invoice._id}
-      Tenant: ${invoice.tenant?.name}
-      Month: ${invoice.month} ${invoice.year}
-      Amount: ${invoice.totalAmount}
-      Status: ${invoice.status}
-    `;
-    const newWindow = window.open('', '', 'width=600,height=600');
-    newWindow.document.write('<pre>' + printContent + '</pre>');
-    newWindow.document.close();
-    newWindow.print();
-  };
+const handleDownload = (invoice) => {
+  const win = window.open("", "", "width=900,height=800");
+  win.document.write(generateInvoiceHTML(invoice));
+  win.document.close();
+};
+
 
   return (
     <div style={{ maxWidth: 1200, margin: "0 auto" }}>

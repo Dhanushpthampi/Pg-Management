@@ -4,10 +4,20 @@ const invoiceSchema = new mongoose.Schema(
     {
         tenant: { type: mongoose.Schema.Types.ObjectId, ref: "Tenant", required: true },
         property: { type: mongoose.Schema.Types.ObjectId, ref: "Property", required: true },
+        // Additional property details for invoice
+        building: { type: String },
+        floor: { type: String },
+        room: { type: String },
+        bed: { type: String },
+        occupancyType: { type: String },
+        // Tenant ID proof details
+        tenantIdProof: { type: String },
 
         // Billing Period
         month: String, // e.g., "October 2023"
         year: Number,
+        billingPeriodStart: Date,
+        billingPeriodEnd: Date,
 
         items: [
             {

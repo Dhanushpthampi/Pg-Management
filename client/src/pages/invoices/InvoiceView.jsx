@@ -22,162 +22,268 @@ const InvoiceView = () => {
   }, [id]);
 
   const handleDownload = () => {
-    const printWindow = window.open('', '', 'width=800,height=600');
+    const printWindow = window.open('', '', 'width=900,height=800');
 
-    const invoiceHTML = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Invoice ${invoice._id.slice(-6).toUpperCase()}</title>
-        <style>
-          * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: Arial, sans-serif; padding: 40px; color: #333; }
-          .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; }
-          .header h1 { font-size: 24px; font-weight: bold; }
-          .print-btn { padding: 8px 16px; border: 1px solid #666; background: white; cursor: pointer; border-radius: 4px; }
-          .invoice-details { margin-bottom: 30px; }
-          .invoice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 30px; }
-          .section-title { font-weight: bold; font-size: 16px; margin-bottom: 10px; }
-          .info-line { margin-bottom: 5px; font-size: 13px; line-height: 1.6; }
-          .label { font-weight: 600; display: inline-block; min-width: 140px; }
-          .status-badge { display: inline-block; padding: 4px 12px; background: #ff9800; color: white; border-radius: 4px; font-size: 12px; }
-          .divider { border-top: 2px solid #333; margin: 20px 0; }
-          table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-          th { background: #f5f5f5; padding: 12px; text-align: left; border: 1px solid #ddd; font-weight: 600; }
-          td { padding: 12px; border: 1px solid #ddd; }
-          .totals { margin-top: 20px; }
-          .totals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
-          .total-row { display: flex; justify-content: space-between; padding: 8px 0; }
-          .total-row.final { font-weight: bold; font-size: 16px; border-top: 2px solid #333; padding-top: 12px; margin-top: 8px; }
-          .payment-details { font-size: 13px; line-height: 1.8; }
-          .terms { margin-top: 30px; font-size: 11px; line-height: 1.6; }
-          .footer { margin-top: 40px; text-align: right; }
-          @media print {
-            .print-btn { display: none; }
-            body { padding: 20px; }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <h1>PG Invoice Template</h1>
-          <button class="print-btn" onclick="window.print()">Print/ Save as PDF</button>
-        </div>
+    // Calculate tax amounts
+    const subtotal = invoice.subtotal || invoice.totalAmount;
+    const cgst = invoice.cgst || (subtotal * 0.09);
+    const sgst = invoice.sgst || (subtotal * 0.09);
+    const totalWithTax = subtotal + cgst + sgst;
 
-        <div class="invoice-grid">
-          <div>
-            <div class="section-title">Invoice</div>
-            <div class="info-line">GullyPG</div>
-            <div class="info-line">#257, 3rd Floor, Street Address,</div>
-            <div class="info-line">City, State - Pincode</div>
-            <div class="info-line">Phone: +91-9876543210</div>
-            <div class="info-line">Email: billing@yourpg.com</div>
-          </div>
-          <div style="text-align: right;">
-            <div class="info-line"><span class="label">Invoice No:</span> INV-${invoice._id.slice(-6).toUpperCase()}</div>
-            <div class="info-line"><span class="label">Invoice Date:</span> ${new Date(invoice.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
-            <div class="info-line"><span class="label">Billing Period:</span> ${invoice.month} ${invoice.year}</div>
-            <div class="info-line"><span class="label">Payment Status:</span> <span class="status-badge">${invoice.status}</span></div>
-          </div>
-        </div>
+    // Format billing period
+    const formatBillingPeriod = () => {
+      if (invoice.billingPeriodStart && invoice.billingPeriodEnd) {
+        const start = new Date(invoice.billingPeriodStart).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        const end = new Date(invoice.billingPeriodEnd).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        return `${start} - ${end}`;
+      }
+      return `${invoice.month} ${invoice.year}`;
+    };
 
-        <div class="divider"></div>
+const invoiceHTML = `
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Invoice ${invoice._id.slice(-6).toUpperCase()}</title>
+  <style>
+    body {
+      font-family: 'Inter', Arial, sans-serif;
+      color: #1f2937;
+      margin: 0;
+      padding: 32px;
+      background: #ffffff;
+    }
 
-        <div class="invoice-grid">
-          <div>
-            <div class="section-title">Bill To (Tenant)</div>
-            <div class="info-line"><strong>${invoice.tenant?.name || 'N/A'}</strong></div>
-            <div class="info-line">Mobile: ${invoice.tenant?.phone || 'N/A'}</div>
-            <div class="info-line">Email: ${invoice.tenant?.email || 'N/A'}</div>
-            <div class="info-line">ID Proof: Aadhaar / PAN - XXXX1234X</div>
-          </div>
-          <div>
-            <div class="section-title">Property & Room Details</div>
-            <div class="info-line">Property: ${invoice.property?.name || 'N/A'}</div>
-            <div class="info-line">Building: ${invoice.tenant?.block?.name || 'N/A'}, Floor: ${invoice.tenant?.floor?.name || 'N/A'}</div>
-            <div class="info-line">Room No: ${invoice.tenant?.room?.number || 'N/A'}, Bed No: ${invoice.tenant?.bed?.number || 'N/A'}</div>
-            <div class="info-line">Occupancy Type: ${invoice.tenant?.room?.type || 'N/A'}</div>
-          </div>
-        </div>
+    .invoice-wrapper {
+      max-width: 900px;
+      margin: auto;
+    }
 
-        <table>
-          <thead>
-            <tr>
-              <th style="width: 50px;">#</th>
-              <th>Description</th>
-              <th style="width: 80px;">Qty</th>
-              <th style="width: 120px;">Rate (₹)</th>
-              <th style="width: 120px;">Amount (₹)</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${invoice.items.map((item, index) => `
-              <tr>
-                <td>${index + 1}</td>
-                <td>${item.description}</td>
-                <td>1</td>
-                <td>${item.amount.toLocaleString('en-IN')}</td>
-                <td>${item.amount.toLocaleString('en-IN')}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
+    /* Header */
+    .top-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 3px solid #2563eb;
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+    }
 
-        <div class="totals">
-          <div class="totals-grid">
-            <div class="payment-details">
-              <div class="section-title">Payment Details</div>
-              <div>Bank Name: Axis Bank</div>
-              <div>Account Name: GullyPG</div>
-              <div>Account No: 123456789012</div>
-              <div>IFSC: ABCD0123456</div>
-              <div>UPI ID: yourpg@upi</div>
-            </div>
-            <div>
-              <div class="total-row">
-                <span>Subtotal (₹):</span>
-                <span>${invoice.totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-              </div>
-              <div class="total-row">
-                <span>CGST @ 9% (₹):</span>
-                <span>0.00</span>
-              </div>
-              <div class="total-row">
-                <span>SGST @ 9% (₹):</span>
-                <span>0.00</span>
-              </div>
-              <div class="total-row final">
-                <span>Total Payable (₹):</span>
-                <span>${invoice.totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-              </div>
-              <div class="total-row" style="font-size: 12px; margin-top: 10px;">
-                <span>Amount in Words:</span>
-              </div>
-              <div style="font-size: 12px; font-style: italic; text-align: right;">
-                ${numberToWords(invoice.totalAmount)} Rupees Only
-              </div>
-              <div class="total-row" style="margin-top: 15px;">
-                <span>Due Date:</span>
-                <span>${new Date(new Date(invoice.createdAt).setDate(new Date(invoice.createdAt).getDate() + 5)).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
-              </div>
-            </div>
-          </div>
-        </div>
+    .brand h1 {
+      margin: 0;
+      font-size: 26px;
+      color: #2563eb;
+    }
 
-        <div class="terms">
-          <div class="section-title">Terms & Conditions</div>
-          <div>1. This is a system-generated invoice and does not require a physical signature.</div>
-          <div>2. Payments once made are non-refundable as per PG policy.</div>
-          <div>3. Please share payment confirmation via WhatsApp or Email after transfer.</div>
-        </div>
+    .brand p {
+      font-size: 12px;
+      line-height: 1.6;
+      margin: 2px 0;
+    }
 
-        <div class="footer">
-          <div style="font-weight: bold;">GullyPG</div>
-          <div style="font-size: 12px; color: #666;">Authorised Signatory</div>
-        </div>
-      </body>
-      </html>
-    `;
+    .invoice-meta {
+      text-align: right;
+      font-size: 13px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 6px;
+      background: ${invoice.status === 'Paid' ? '#16a34a' : '#f59e0b'};
+      color: #fff;
+    }
+
+    /* Section */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      margin-bottom: 24px;
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      color: #374151;
+    }
+
+    .info-line {
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    /* Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      font-size: 13px;
+    }
+
+    th {
+      background: #f3f4f6;
+      padding: 12px;
+      text-align: left;
+      border-bottom: 2px solid #e5e7eb;
+    }
+
+    td {
+      padding: 12px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    th:last-child, td:last-child {
+      text-align: right;
+    }
+
+    /* Totals */
+    .totals {
+      margin-top: 24px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .totals-box {
+      width: 360px;
+      background: #f9fafb;
+      padding: 20px;
+      border-radius: 8px;
+    }
+
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+
+    .total-row.final {
+      font-size: 18px;
+      font-weight: 700;
+      border-top: 2px solid #111827;
+      padding-top: 12px;
+      margin-top: 12px;
+    }
+
+    .amount-words {
+      font-size: 12px;
+      margin-top: 8px;
+      font-style: italic;
+      color: #374151;
+    }
+
+    /* Footer */
+    .footer {
+      margin-top: 36px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #374151;
+    }
+
+    .terms {
+      max-width: 60%;
+      line-height: 1.6;
+    }
+
+    @media print {
+      body {
+        padding: 16px;
+      }
+      .print-btn {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<div class="invoice-wrapper">
+
+  <div class="top-header">
+    <div class="brand">
+      <h1>GullyPG Pvt Ltd</h1>
+      <p>GSTIN: 29ABCDE1234F1Z5</p>
+      <p>#257, 3rd Floor, Bengaluru, KA</p>
+      <p>billing@gullypg.com | +91 98765 43210</p>
+    </div>
+
+    <div class="invoice-meta">
+      <div><strong>Invoice No:</strong> INV-${invoice._id.slice(-6).toUpperCase()}</div>
+      <div><strong>Invoice Date:</strong> ${new Date(invoice.createdAt).toLocaleDateString('en-GB')}</div>
+      <div><strong>Due Date:</strong> ${invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString('en-GB') : '-'}</div>
+      <div class="badge">${invoice.status}</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="section-title">Bill To</div>
+      <div class="info-line"><strong>${invoice.tenant?.name}</strong></div>
+      <div class="info-line">Phone: ${invoice.tenant?.phone}</div>
+      <div class="info-line">Email: ${invoice.tenant?.email || 'N/A'}</div>
+    </div>
+
+    <div>
+      <div class="section-title">Property Details</div>
+      <div class="info-line">Property: ${invoice.property?.name}</div>
+      <div class="info-line">Room: ${invoice.tenant?.room?.number} / Bed: ${invoice.tenant?.bed?.number}</div>
+      <div class="info-line">Occupancy: ${invoice.tenant?.room?.type}</div>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Description</th>
+        <th>Amount (₹)</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${invoice.items.map((item, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${item.description}</td>
+          <td>${item.amount.toLocaleString('en-IN')}</td>
+        </tr>
+      `).join('')}
+    </tbody>
+  </table>
+
+  <div class="totals">
+    <div class="totals-box">
+      <div class="total-row"><span>Subtotal</span><span>₹${subtotal.toFixed(2)}</span></div>
+      <div class="total-row"><span>CGST (9%)</span><span>₹${cgst.toFixed(2)}</span></div>
+      <div class="total-row"><span>SGST (9%)</span><span>₹${sgst.toFixed(2)}</span></div>
+      <div class="total-row final"><span>Total Payable</span><span>₹${totalWithTax.toFixed(2)}</span></div>
+      <div class="amount-words">${numberToWords(Math.round(totalWithTax))} Rupees Only</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="terms">
+      <strong>Terms:</strong><br/>
+      Payment due within 10 days. Late fee applicable thereafter.<br/>
+      This is a system generated invoice.
+    </div>
+    <div style="text-align:right;">
+      <strong>For GullyPG</strong><br/><br/>
+      Authorised Signatory
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
+`;
+
 
     printWindow.document.write(invoiceHTML);
     printWindow.document.close();
