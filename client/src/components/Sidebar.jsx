@@ -1,7 +1,7 @@
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard, Building, Users, CalendarCheck,
-  UserCog, MessageSquare, Receipt, LogOut, UserX
+  UserCog, MessageSquare, Receipt, UserX
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -33,7 +33,7 @@ const Sidebar = () => {
           </NavLink>
         ))}
       </nav>
-      {/* Logout removed as per request */}
+
 
       <style>{`
         .sidebar {
@@ -45,6 +45,7 @@ const Sidebar = () => {
           flex-direction: column;
           position: sticky;
           top: 0;
+          z-index: 20;
           overflow: hidden;
         }
         .sidebar-header {
@@ -62,6 +63,7 @@ const Sidebar = () => {
           display: flex;
           flex-direction: column;
           gap: 4px;
+          overflow-y: auto; /* allow nav to scroll if content exceeds viewport */
         }
         .nav-item {
           display: flex;
@@ -84,11 +86,13 @@ const Sidebar = () => {
           background: var(--bg-main);
           color: var(--primary);
           transform: translateX(4px);
+          width: 85%;
         }
         .nav-item.active {
           background: #f0f0f0;
           color: var(--primary);
           font-weight: 600;
+          width: 85%;
         }
       `}</style>
     </div >

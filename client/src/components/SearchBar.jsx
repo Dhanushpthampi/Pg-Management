@@ -18,6 +18,7 @@ const SearchBar = ({ value, onChange, placeholder = "Search..." }) => {
           flex: 1 1 auto;
           min-width: 200px;
           max-width: 350px;
+          margin-right: 100px;
         }
         .search-icon {
           position: absolute;
