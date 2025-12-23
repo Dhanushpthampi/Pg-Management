@@ -7,12 +7,10 @@ const ManageProperty = () => {
     const { id } = useParams();
     const [property, setProperty] = useState(null);
     const [hierarchy, setHierarchy] = useState([]);
-    const [activeTab, setActiveTab] = useState("view");
+    const [selectedSharing, setSelectedSharing] = useState("");
     const [selectedBed, setSelectedBed] = useState(null);
     const [showBedModal, setShowBedModal] = useState(false);
-
-    // Filters
-    const [filters, setFilters] = useState({ sharing: "", status: "" });
+    const [showAddModal, setShowAddModal] = useState(null); // 'block', 'floor', 'room', 'bed'
 
     // Form states
     const [blockForm, setBlockForm] = useState({ name: "" });
@@ -24,6 +22,11 @@ const ManageProperty = () => {
     const [blocks, setBlocks] = useState([]);
     const [floors, setFloors] = useState([]);
     const [rooms, setRooms] = useState([]);
+
+    // Selected filters
+    const [selectedBlock, setSelectedBlock] = useState("");
+    const [selectedFloor, setSelectedFloor] = useState("");
+    const [selectedRoom, setSelectedRoom] = useState("");
 
     useEffect(() => {
         fetchData();
@@ -62,13 +65,14 @@ const ManageProperty = () => {
         }
     };
 
-    // Add Block
+    // Add handlers
     const addBlock = async (e) => {
         e.preventDefault();
         try {
             await api.post("/hierarchy/blocks", { ...blockForm, property: id });
             alert("Block added successfully");
             setBlockForm({ name: "" });
+            setShowAddModal(null);
             fetchData();
         } catch (err) {
             console.error(err);
@@ -76,22 +80,29 @@ const ManageProperty = () => {
         }
     };
 
-    // Add Floor
     const addFloor = async (e) => {
         e.preventDefault();
         try {
-            await api.post("/hierarchy/floors", { name: floorForm.name, block: floorForm.blockId });
+            await api.post("/hierarchy/floors", {
+                name: floorForm.name,
+                block: floorForm.blockId,
+                property: id
+            });
             alert("Floor added successfully");
+
+            // Auto-select the block we added to, so the user sees the new floor immediately
+            setSelectedBlock(floorForm.blockId);
+            fetchFloors(floorForm.blockId);
+
             setFloorForm({ name: "", blockId: "" });
+            setShowAddModal(null);
             fetchData();
-            if (floorForm.blockId) fetchFloors(floorForm.blockId);
         } catch (err) {
             console.error(err);
             alert("Failed to add floor: " + (err.response?.data?.message || err.message));
         }
     };
 
-    // Add Room
     const addRoom = async (e) => {
         e.preventDefault();
         try {
@@ -101,7 +112,13 @@ const ManageProperty = () => {
                 sharingType: roomForm.sharingType
             });
             alert("Room added successfully");
+
+            // Auto-select the floor we added to, so the user sees the new room immediately
+            setSelectedFloor(roomForm.floorId);
+            fetchRooms(roomForm.floorId);
+
             setRoomForm({ number: "", floorId: "", sharingType: "single", blockId: "" });
+            setShowAddModal(null);
             fetchData();
         } catch (err) {
             console.error(err);
@@ -109,13 +126,25 @@ const ManageProperty = () => {
         }
     };
 
-    // Add Beds
     const addBeds = async (e) => {
         e.preventDefault();
         try {
             await api.post("/hierarchy/beds/bulk", bedForm);
             alert(`${bedForm.count} beds added successfully`);
+
+            // Auto-select the room we added to, so users see the beds
+            setSelectedRoom(bedForm.roomId);
+            // Fetch rooms to get updated bed data
+            // We need to know the floor of the room to fetchRooms(floorId)
+            // But bedForm doesn't have floorId easily available unless we looked it up.
+            // But we can just use selectedFloor if it's set? No, user might have changed it in modal.
+
+            // For now, let's just refresh current view if possible.
+            if (selectedFloor) fetchRooms(selectedFloor);
+
+
             setBedForm({ roomId: "", count: 1, startNumber: 1 });
+            setShowAddModal(null);
             fetchData();
         } catch (err) {
             console.error(err);
@@ -127,8 +156,8 @@ const ManageProperty = () => {
         const colors = {
             available: "#4CAF50",
             occupied: "#F44336",
-            booked: "#FFC107",
-            notice: "#FF9800",
+            booked: "#2196F3",
+            notice: "#FFC107",
             maintenance: "#9E9E9E"
         };
         return colors[status] || "#ccc";
@@ -151,420 +180,420 @@ const ManageProperty = () => {
         }
     };
 
-    const getFilteredHierarchy = () => {
-        if (!filters.sharing && !filters.status) return hierarchy;
+    const sharingTypes = ["No sharing", "1 sharing", "2 sharing", "3 sharing", "4 sharing", "5 sharing", "6 sharing"];
 
-        return hierarchy.map(block => ({
-            ...block,
-            floors: block.floors.map(floor => ({
-                ...floor,
-                rooms: floor.rooms.filter(room => {
-                    const matchSharing = !filters.sharing || room.sharingType === filters.sharing;
-                    const matchStatus = !filters.status || room.beds.some(bed => bed.status === filters.status);
-                    return matchSharing && matchStatus;
-                }).map(room => ({
-                    ...room,
-                    beds: !filters.status ? room.beds : room.beds.filter(bed => bed.status === filters.status)
-                }))
-            }))
-        })).filter(block => block.floors.some(floor => floor.rooms.length > 0));
+    const buttonStyle = (isActive) => ({
+        padding: "10px 20px",
+        border: "1px solid #ddd",
+        borderRadius: "20px",
+        backgroundColor: isActive ? "#2196F3" : "#fff",
+        color: isActive ? "#fff" : "#333",
+        cursor: "pointer",
+        fontSize: "14px"
+    });
+
+    const cardStyle = {
+        border: "1px solid #ddd",
+        borderRadius: "12px",
+        padding: "20px",
+        backgroundColor: "#fff",
+        minWidth: "160px"
     };
 
-    const filteredHierarchy = getFilteredHierarchy();
-
-    const getStats = () => {
-        let total = 0, available = 0, occupied = 0, booked = 0;
-        hierarchy.forEach(block => {
-            block.floors?.forEach(floor => {
-                floor.rooms?.forEach(room => {
-                    room.beds?.forEach(bed => {
-                        total++;
-                        if (bed.status === 'available') available++;
-                        if (bed.status === 'occupied') occupied++;
-                        if (bed.status === 'booked') booked++;
-                    });
-                });
-            });
-        });
-        return { total, available, occupied, booked };
+    const gridItemStyle = {
+        border: "1px solid #333",
+        borderRadius: "8px",
+        padding: "15px 20px",
+        textAlign: "center",
+        cursor: "pointer",
+        fontSize: "16px",
+        fontWeight: "500",
+        backgroundColor: "#fff",
+        minWidth: "60px"
     };
 
-    const stats = hierarchy.length > 0 ? getStats() : { total: 0, available: 0, occupied: 0, booked: 0 };
+    const addButtonStyle = {
+        width: "40px",
+        height: "40px",
+        borderRadius: "50%",
+        border: "2px solid #333",
+        backgroundColor: "#fff",
+        fontSize: "24px",
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center"
+    };
 
     return (
-        <div>
+        <div style={{ padding: "20px", maxWidth: "1200px", margin: "0 auto" }}>
             <BackButton />
-            <h1>Manage Property - {property?.name}</h1>
+            <h1>Bed Availability - {property?.name}</h1>
 
-            {/* Tabs */}
-            <div style={{ display: "flex", gap: 10, marginBottom: 20, borderBottom: "2px solid #ddd", flexWrap: "wrap" }}>
-                {["view", "blocks", "floors", "rooms", "beds"].map(tab => (
+            {/* Sharing Type Filters */}
+            <div style={{ display: "flex", gap: "10px", marginBottom: "20px", flexWrap: "wrap" }}>
+                {sharingTypes.map(type => (
                     <button
-                        key={tab}
-                        onClick={() => setActiveTab(tab)}
-                        style={{
-                            padding: "10px 20px",
-                            border: "none",
-                            borderBottom: activeTab === tab ? "3px solid #2196F3" : "none",
-                            backgroundColor: activeTab === tab ? "#e3f2fd" : "transparent",
-                            cursor: "pointer",
-                            fontWeight: activeTab === tab ? "bold" : "normal"
-                        }}
+                        key={type}
+                        onClick={() => setSelectedSharing(selectedSharing === type ? "" : type)}
+                        style={buttonStyle(selectedSharing === type)}
                     >
-                        {tab === "view" ? "View Beds" : tab.charAt(0).toUpperCase() + tab.slice(1)}
+                        {type}
                     </button>
                 ))}
             </div>
 
-            {/* VIEW BEDS TAB */}
-            {activeTab === "view" && (
-                <div>
-                    {/* Stats Dashboard */}
-                    <div style={{ display: "flex", gap: 20, marginBottom: 30, flexWrap: "wrap" }}>
-                        <div style={{ padding: 20, border: "2px solid #2196F3", borderRadius: 8, minWidth: 150 }}>
-                            <h3 style={{ margin: 0, color: "#2196F3" }}>Total Beds</h3>
-                            <p style={{ fontSize: 32, fontWeight: "bold", margin: "10px 0 0 0" }}>{stats.total}</p>
-                        </div>
-                        <div style={{ padding: 20, border: "2px solid #4CAF50", borderRadius: 8, minWidth: 150 }}>
-                            <h3 style={{ margin: 0, color: "#4CAF50" }}>Available</h3>
-                            <p style={{ fontSize: 32, fontWeight: "bold", margin: "10px 0 0 0" }}>{stats.available}</p>
-                        </div>
-                        <div style={{ padding: 20, border: "2px solid #F44336", borderRadius: 8, minWidth: 150 }}>
-                            <h3 style={{ margin: 0, color: "#F44336" }}>Occupied</h3>
-                            <p style={{ fontSize: 32, fontWeight: "bold", margin: "10px 0 0 0" }}>{stats.occupied}</p>
-                        </div>
-                        <div style={{ padding: 20, border: "2px solid #FFC107", borderRadius: 8, minWidth: 150 }}>
-                            <h3 style={{ margin: 0, color: "#FFC107" }}>Booked</h3>
-                            <p style={{ fontSize: 32, fontWeight: "bold", margin: "10px 0 0 0" }}>{stats.booked}</p>
-                        </div>
+            {/* Status Legend */}
+            <div style={{ display: "flex", gap: "20px", marginBottom: "30px", alignItems: "center" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <div style={{ width: "16px", height: "16px", backgroundColor: "#4CAF50", borderRadius: "50%" }}></div>
+                    <span>Available</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <div style={{ width: "16px", height: "16px", backgroundColor: "#F44336", borderRadius: "50%" }}></div>
+                    <span>Occupied</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <div style={{ width: "16px", height: "16px", backgroundColor: "#FFC107", borderRadius: "50%" }}></div>
+                    <span>Notice</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <div style={{ width: "16px", height: "16px", backgroundColor: "#2196F3", borderRadius: "50%" }}></div>
+                    <span>Booked</span>
+                </div>
+            </div>
+
+            {/* Dropdown Selectors */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "20px", marginBottom: "40px" }}>
+                <div style={cardStyle}>
+                    <h3 style={{ margin: "0 0 10px 0", fontSize: "16px" }}>Blocks</h3>
+                    <select
+                        value={selectedBlock}
+                        onChange={(e) => {
+                            setSelectedBlock(e.target.value);
+                            setSelectedFloor("");
+                            setSelectedRoom("");
+                            if (e.target.value) fetchFloors(e.target.value);
+                        }}
+                        style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
+                    >
+                        <option value="">Select a block</option>
+                        {blocks.map(block => <option key={block._id} value={block._id}>{block.name}</option>)}
+                    </select>
+                </div>
+
+                <div style={cardStyle}>
+                    <h3 style={{ margin: "0 0 10px 0", fontSize: "16px" }}>Floors</h3>
+                    <select
+                        value={selectedFloor}
+                        onChange={(e) => {
+                            setSelectedFloor(e.target.value);
+                            setSelectedRoom("");
+                            if (e.target.value) fetchRooms(e.target.value);
+                        }}
+                        style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
+                        disabled={!selectedBlock}
+                    >
+                        <option value="">Select a floor</option>
+                        {floors.map(floor => <option key={floor._id} value={floor._id}>{floor.name}</option>)}
+                    </select>
+                </div>
+
+                <div style={cardStyle}>
+                    <h3 style={{ margin: "0 0 10px 0", fontSize: "16px" }}>Rooms</h3>
+                    <select
+                        value={selectedRoom}
+                        onChange={(e) => setSelectedRoom(e.target.value)}
+                        style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
+                        disabled={!selectedFloor}
+                    >
+                        <option value="">Select a room</option>
+                        {rooms.map(room => <option key={room._id} value={room._id}>Room {room.number}</option>)}
+                    </select>
+                </div>
+
+                <div style={cardStyle}>
+                    <h3 style={{ margin: "0 0 10px 0", fontSize: "16px" }}>Beds</h3>
+                    <select
+                        style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
+                        disabled={!selectedRoom}
+                    >
+                        <option value="">Select a room</option>
+                    </select>
+                </div>
+            </div>
+
+            {/* Grid Views */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "30px" }}>
+                {/* Blocks Grid */}
+                <div style={cardStyle}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
+                        <h3 style={{ margin: 0, fontSize: "18px" }}>Blocks</h3>
+                        <button onClick={() => setShowAddModal('block')} style={addButtonStyle}>+</button>
                     </div>
-
-                    {/* Filters */}
-                    <div style={{ display: "flex", gap: 15, marginBottom: 30 }}>
-                        <select
-                            value={filters.sharing}
-                            onChange={(e) => setFilters({ ...filters, sharing: e.target.value })}
-                            style={{ padding: 10, borderRadius: 4 }}
-                        >
-                            <option value="">All Sharing Types</option>
-                            <option value="single">Single</option>
-                            <option value="double">Double</option>
-                            <option value="triple">Triple</option>
-                            <option value="four">Four Sharing</option>
-                        </select>
-                        <select
-                            value={filters.status}
-                            onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                            style={{ padding: 10, borderRadius: 4 }}
-                        >
-                            <option value="">All Status</option>
-                            <option value="available">Available</option>
-                            <option value="occupied">Occupied</option>
-                            <option value="booked">Booked</option>
-                            <option value="notice">On Notice</option>
-                            <option value="maintenance">Maintenance</option>
-                        </select>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
+                        {blocks.map(block => (
+                            <div key={block._id} style={gridItemStyle} onClick={() => {
+                                setSelectedBlock(block._id);
+                                fetchFloors(block._id);
+                            }}>
+                                {block.name}
+                            </div>
+                        ))}
                     </div>
+                </div>
 
-                    {/* Hierarchy Visualization */}
-                    {filteredHierarchy.map((block) => (
-                        <div key={block._id} style={{ marginBottom: 40, border: "2px solid #ddd", padding: 20, borderRadius: 8 }}>
-                            <h2 style={{ margin: "0 0 20px 0", color: "#333", borderBottom: "2px solid #2196F3", paddingBottom: 10 }}>
-                                🏢 Block: {block.name}
-                            </h2>
+                {/* Floors Grid */}
+                <div style={cardStyle}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
+                        <h3 style={{ margin: 0, fontSize: "18px" }}>Floors</h3>
+                        <button onClick={() => setShowAddModal('floor')} style={addButtonStyle}>+</button>
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
+                        {floors.map(floor => (
+                            <div key={floor._id} style={gridItemStyle} onClick={() => {
+                                setSelectedFloor(floor._id);
+                                fetchRooms(floor._id);
+                            }}>
+                                {floor.name}
+                            </div>
+                        ))}
+                    </div>
+                </div>
 
-                            {block.floors?.map(floor => (
-                                <div key={floor._id} style={{ marginLeft: 20, marginBottom: 30 }}>
-                                    <h3 style={{ color: "#555", marginBottom: 15 }}>📍 {floor.name}</h3>
+                {/* Rooms Grid */}
+                <div style={cardStyle}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
+                        <h3 style={{ margin: 0, fontSize: "18px" }}>Rooms</h3>
+                        <button onClick={() => setShowAddModal('room')} style={addButtonStyle}>+</button>
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
+                        {rooms.map(room => (
+                            <div key={room._id} style={gridItemStyle} onClick={() => setSelectedRoom(room._id)}>
+                                {room.number}
+                            </div>
+                        ))}
+                    </div>
+                </div>
 
-                                    <div style={{ display: "flex", flexWrap: "wrap", gap: 20 }}>
-                                        {floor.rooms?.map(room => (
-                                            <div
-                                                key={room._id}
-                                                style={{
-                                                    border: "1px solid #ccc",
-                                                    borderRadius: 8,
-                                                    padding: 15,
-                                                    backgroundColor: "#f9f9f9",
-                                                    minWidth: 200
-                                                }}
-                                            >
-                                                <h4 style={{ margin: "0 0 10px 0", color: "#333" }}>🚪 Room {room.number}</h4>
-                                                <p style={{ margin: "0 0 10px 0", fontSize: 12, color: "#666" }}>
-                                                    {room.sharingType || "N/A"} Sharing
-                                                </p>
+                {/* Beds Grid */}
+                <div style={cardStyle}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
+                        <h3 style={{ margin: 0, fontSize: "18px" }}>Beds</h3>
+                        <button onClick={() => setShowAddModal('bed')} style={addButtonStyle}>+</button>
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
+                        {selectedRoom && rooms.find(r => r._id === selectedRoom)?.beds?.map(bed => (
+                            <div
+                                key={bed._id}
+                                style={{ ...gridItemStyle, backgroundColor: getBedColor(bed.status), color: "#fff" }}
+                                onClick={() => handleBedClick(bed, rooms.find(r => r._id === selectedRoom))}
+                            >
+                                {bed.number}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
 
-                                                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                                                    {room.beds?.map((bed) => (
-                                                        <div
-                                                            key={bed._id}
-                                                            onClick={() => handleBedClick(bed, room)}
-                                                            style={{
-                                                                width: 70,
-                                                                height: 70,
-                                                                backgroundColor: getBedColor(bed.status),
-                                                                color: "#fff",
-                                                                display: "flex",
-                                                                flexDirection: "column",
-                                                                alignItems: "center",
-                                                                justifyContent: "center",
-                                                                cursor: "pointer",
-                                                                fontSize: 14,
-                                                                fontWeight: "bold",
-                                                                borderRadius: 8,
-                                                                border: "2px solid #fff",
-                                                                boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
-                                                                transition: "transform 0.2s",
-                                                            }}
-                                                            onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.1)"}
-                                                            onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
-                                                            title={`Bed ${bed.number} - ${bed.status}`}
-                                                        >
-                                                            <span>🛏️</span>
-                                                            <span>{bed.number}</span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    ))}
-
-                    {/* Legend */}
-                    <div style={{ marginTop: 40, padding: 20, backgroundColor: "#f5f5f5", borderRadius: 8 }}>
-                        <strong style={{ fontSize: 18 }}>Legend:</strong>
-                        <div style={{ display: "flex", gap: 20, marginTop: 15, flexWrap: "wrap" }}>
-                            <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                <div style={{ width: 20, height: 20, backgroundColor: "#4CAF50", borderRadius: 4 }}></div>
-                                Available
-                            </span>
-                            <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                <div style={{ width: 20, height: 20, backgroundColor: "#F44336", borderRadius: 4 }}></div>
-                                Occupied
-                            </span>
-                            <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                <div style={{ width: 20, height: 20, backgroundColor: "#FFC107", borderRadius: 4 }}></div>
-                                Booked
-                            </span>
-                            <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                <div style={{ width: 20, height: 20, backgroundColor: "#FF9800", borderRadius: 4 }}></div>
-                                On Notice
-                            </span>
-                            <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                <div style={{ width: 20, height: 20, backgroundColor: "#9E9E9E", borderRadius: 4 }}></div>
-                                Maintenance
-                            </span>
-                        </div>
+            {/* Add Block Modal */}
+            {showAddModal === 'block' && (
+                <div style={{
+                    position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: "rgba(0,0,0,0.5)", display: "flex",
+                    alignItems: "center", justifyContent: "center", zIndex: 1000
+                }}>
+                    <div style={{ backgroundColor: "#fff", padding: 30, borderRadius: 12, minWidth: 400 }}>
+                        <h2>Add Block</h2>
+                        <form onSubmit={addBlock} style={{ display: "flex", flexDirection: "column", gap: 15 }}>
+                            <input
+                                type="text"
+                                placeholder="Block Name (e.g., A, B, Main)"
+                                value={blockForm.name}
+                                onChange={(e) => setBlockForm({ name: e.target.value })}
+                                required
+                                style={{ padding: 10, borderRadius: 4, border: "1px solid #ddd" }}
+                            />
+                            <div style={{ display: "flex", gap: 10 }}>
+                                <button type="submit" style={{ flex: 1, padding: 10, backgroundColor: "#2196F3", color: "#fff", border: "none", borderRadius: 4, cursor: "pointer" }}>Add</button>
+                                <button type="button" onClick={() => setShowAddModal(null)} style={{ flex: 1, padding: 10, backgroundColor: "#666", color: "#fff", border: "none", borderRadius: 4, cursor: "pointer" }}>Cancel</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}
 
-            {/* ADD BLOCKS TAB */}
-            {activeTab === "blocks" && (
-                <div style={{ maxWidth: 500 }}>
-                    <h2>Add Block</h2>
-                    <form onSubmit={addBlock} style={{ display: "flex", flexDirection: "column", gap: 15 }}>
-                        <input
-                            type="text"
-                            placeholder="Block Name (e.g., A, B, Main)"
-                            value={blockForm.name}
-                            onChange={(e) => setBlockForm({ name: e.target.value })}
-                            required
-                        />
-                        <button type="submit">Add Block</button>
-                    </form>
-
-                    <h3 style={{ marginTop: 30 }}>Existing Blocks:</h3>
-                    <ul>
-                        {blocks.map(block => <li key={block._id}>{block.name}</li>)}
-                    </ul>
-                </div>
-            )}
-
-            {/* ADD FLOORS TAB */}
-            {activeTab === "floors" && (
-                <div style={{ maxWidth: 500 }}>
-                    <h2>Add Floor</h2>
-                    <form onSubmit={addFloor} style={{ display: "flex", flexDirection: "column", gap: 15 }}>
-                        <select
-                            value={floorForm.blockId}
-                            onChange={(e) => {
-                                setFloorForm({ ...floorForm, blockId: e.target.value });
-                                fetchFloors(e.target.value);
-                            }}
-                            required
-                        >
-                            <option value="">Select Block</option>
-                            {blocks.map(block => <option key={block._id} value={block._id}>{block.name}</option>)}
-                        </select>
-                        <input
-                            type="text"
-                            placeholder="Floor Name (e.g., Ground Floor, 1st Floor)"
-                            value={floorForm.name}
-                            onChange={(e) => setFloorForm({ ...floorForm, name: e.target.value })}
-                            required
-                        />
-                        <button type="submit">Add Floor</button>
-                    </form>
-
-                    {floorForm.blockId && (
-                        <>
-                            <h3 style={{ marginTop: 30 }}>Existing Floors in Selected Block:</h3>
-                            <ul>
-                                {floors.map(floor => <li key={floor._id}>{floor.name}</li>)}
-                            </ul>
-                        </>
-                    )}
-                </div>
-            )}
-
-            {/* ADD ROOMS TAB */}
-            {activeTab === "rooms" && (
-                <div style={{ maxWidth: 500 }}>
-                    <h2>Add Room</h2>
-                    <form onSubmit={addRoom} style={{ display: "flex", flexDirection: "column", gap: 15 }}>
-                        <select
-                            value={roomForm.blockId}
-                            onChange={(e) => {
-                                setRoomForm({ ...roomForm, blockId: e.target.value, floorId: "" });
-                                fetchFloors(e.target.value);
-                            }}
-                            required
-                        >
-                            <option value="">Select Block First</option>
-                            {blocks.map(block => <option key={block._id} value={block._id}>{block.name}</option>)}
-                        </select>
-
-                        {roomForm.blockId && (
+            {/* Add Floor Modal */}
+            {showAddModal === 'floor' && (
+                <div style={{
+                    position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: "rgba(0,0,0,0.5)", display: "flex",
+                    alignItems: "center", justifyContent: "center", zIndex: 1000
+                }}>
+                    <div style={{ backgroundColor: "#fff", padding: 30, borderRadius: 12, minWidth: 400 }}>
+                        <h2>Add Floor</h2>
+                        <form onSubmit={addFloor} style={{ display: "flex", flexDirection: "column", gap: 15 }}>
                             <select
-                                value={roomForm.floorId}
+                                value={floorForm.blockId}
+                                onChange={(e) => setFloorForm({ ...floorForm, blockId: e.target.value })}
+                                required
+                                style={{ padding: 10, borderRadius: 4, border: "1px solid #ddd" }}
+                            >
+                                <option value="">Select Block</option>
+                                {blocks.map(block => <option key={block._id} value={block._id}>{block.name}</option>)}
+                            </select>
+                            <input
+                                type="text"
+                                placeholder="Floor Name (e.g., Ground Floor, 1st Floor)"
+                                value={floorForm.name}
+                                onChange={(e) => setFloorForm({ ...floorForm, name: e.target.value })}
+                                required
+                                style={{ padding: 10, borderRadius: 4, border: "1px solid #ddd" }}
+                            />
+                            <div style={{ display: "flex", gap: 10 }}>
+                                <button type="submit" style={{ flex: 1, padding: 10, backgroundColor: "#2196F3", color: "#fff", border: "none", borderRadius: 4, cursor: "pointer" }}>Add</button>
+                                <button type="button" onClick={() => setShowAddModal(null)} style={{ flex: 1, padding: 10, backgroundColor: "#666", color: "#fff", border: "none", borderRadius: 4, cursor: "pointer" }}>Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Add Room Modal */}
+            {showAddModal === 'room' && (
+                <div style={{
+                    position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: "rgba(0,0,0,0.5)", display: "flex",
+                    alignItems: "center", justifyContent: "center", zIndex: 1000
+                }}>
+                    <div style={{ backgroundColor: "#fff", padding: 30, borderRadius: 12, minWidth: 400 }}>
+                        <h2>Add Room</h2>
+                        <form onSubmit={addRoom} style={{ display: "flex", flexDirection: "column", gap: 15 }}>
+                            <select
+                                value={roomForm.blockId}
                                 onChange={(e) => {
-                                    setRoomForm({ ...roomForm, floorId: e.target.value });
-                                    fetchRooms(e.target.value);
+                                    setRoomForm({ ...roomForm, blockId: e.target.value, floorId: "" });
+                                    fetchFloors(e.target.value);
                                 }}
                                 required
+                                style={{ padding: 10, borderRadius: 4, border: "1px solid #ddd" }}
+                            >
+                                <option value="">Select Block</option>
+                                {blocks.map(block => <option key={block._id} value={block._id}>{block.name}</option>)}
+                            </select>
+                            {roomForm.blockId && (
+                                <select
+                                    value={roomForm.floorId}
+                                    onChange={(e) => setRoomForm({ ...roomForm, floorId: e.target.value })}
+                                    required
+                                    style={{ padding: 10, borderRadius: 4, border: "1px solid #ddd" }}
+                                >
+                                    <option value="">Select Floor</option>
+                                    {floors.map(floor => <option key={floor._id} value={floor._id}>{floor.name}</option>)}
+                                </select>
+                            )}
+                            <input
+                                type="text"
+                                placeholder="Room Number (e.g., 101, 102)"
+                                value={roomForm.number}
+                                onChange={(e) => setRoomForm({ ...roomForm, number: e.target.value })}
+                                required
+                                style={{ padding: 10, borderRadius: 4, border: "1px solid #ddd" }}
+                            />
+                            <select
+                                value={roomForm.sharingType}
+                                onChange={(e) => setRoomForm({ ...roomForm, sharingType: e.target.value })}
+                                style={{ padding: 10, borderRadius: 4, border: "1px solid #ddd" }}
+                            >
+                                <option value="single">Single</option>
+                                <option value="double">Double</option>
+                                <option value="triple">Triple</option>
+                                <option value="four">Four Sharing</option>
+                            </select>
+                            <div style={{ display: "flex", gap: 10 }}>
+                                <button type="submit" style={{ flex: 1, padding: 10, backgroundColor: "#2196F3", color: "#fff", border: "none", borderRadius: 4, cursor: "pointer" }}>Add</button>
+                                <button type="button" onClick={() => setShowAddModal(null)} style={{ flex: 1, padding: 10, backgroundColor: "#666", color: "#fff", border: "none", borderRadius: 4, cursor: "pointer" }}>Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Add Beds Modal */}
+            {showAddModal === 'bed' && (
+                <div style={{
+                    position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: "rgba(0,0,0,0.5)", display: "flex",
+                    alignItems: "center", justifyContent: "center", zIndex: 1000
+                }}>
+                    <div style={{ backgroundColor: "#fff", padding: 30, borderRadius: 12, minWidth: 400 }}>
+                        <h2>Add Beds (Bulk)</h2>
+                        <form onSubmit={addBeds} style={{ display: "flex", flexDirection: "column", gap: 15 }}>
+                            <select
+                                onChange={(e) => {
+                                    fetchFloors(e.target.value);
+                                    setBedForm({ ...bedForm, roomId: "" });
+                                }}
+                                style={{ padding: 10, borderRadius: 4, border: "1px solid #ddd" }}
+                            >
+                                <option value="">Select Block</option>
+                                {blocks.map(block => <option key={block._id} value={block._id}>{block.name}</option>)}
+                            </select>
+                            <select
+                                onChange={(e) => {
+                                    fetchRooms(e.target.value);
+                                    setBedForm({ ...bedForm, roomId: "" });
+                                }}
+                                style={{ padding: 10, borderRadius: 4, border: "1px solid #ddd" }}
                             >
                                 <option value="">Select Floor</option>
                                 {floors.map(floor => <option key={floor._id} value={floor._id}>{floor.name}</option>)}
                             </select>
-                        )}
-
-                        <input
-                            type="text"
-                            placeholder="Room Number (e.g., 101, 102)"
-                            value={roomForm.number}
-                            onChange={(e) => setRoomForm({ ...roomForm, number: e.target.value })}
-                            required
-                        />
-
-                        <select
-                            value={roomForm.sharingType}
-                            onChange={(e) => setRoomForm({ ...roomForm, sharingType: e.target.value })}
-                        >
-                            <option value="single">Single</option>
-                            <option value="double">Double</option>
-                            <option value="triple">Triple</option>
-                            <option value="four">Four Sharing</option>
-                        </select>
-
-                        <button type="submit">Add Room</button>
-                    </form>
-
-                    {roomForm.floorId && (
-                        <>
-                            <h3 style={{ marginTop: 30 }}>Existing Rooms in Selected Floor:</h3>
-                            <ul>
-                                {rooms.map(room => <li key={room._id}>Room {room.number} ({room.sharingType})</li>)}
-                            </ul>
-                        </>
-                    )}
-                </div>
-            )}
-
-            {/* ADD BEDS TAB */}
-            {activeTab === "beds" && (
-                <div style={{ maxWidth: 500 }}>
-                    <h2>Add Beds (Bulk)</h2>
-                    <form onSubmit={addBeds} style={{ display: "flex", flexDirection: "column", gap: 15 }}>
-                        <p style={{ color: "#666" }}>Select block, floor, and room to add beds</p>
-
-                        <select
-                            onChange={(e) => {
-                                fetchFloors(e.target.value);
-                                setBedForm({ ...bedForm, roomId: "" });
-                            }}
-                        >
-                            <option value="">Select Block</option>
-                            {blocks.map(block => <option key={block._id} value={block._id}>{block.name}</option>)}
-                        </select>
-
-                        <select
-                            onChange={(e) => {
-                                fetchRooms(e.target.value);
-                                setBedForm({ ...bedForm, roomId: "" });
-                            }}
-                        >
-                            <option value="">Select Floor</option>
-                            {floors.map(floor => <option key={floor._id} value={floor._id}>{floor.name}</option>)}
-                        </select>
-
-                        <select
-                            value={bedForm.roomId}
-                            onChange={(e) => setBedForm({ ...bedForm, roomId: e.target.value })}
-                            required
-                        >
-                            <option value="">Select Room</option>
-                            {rooms.map(room => <option key={room._id} value={room._id}>Room {room.number}</option>)}
-                        </select>
-
-                        <input
-                            type="number"
-                            placeholder="Number of Beds"
-                            value={bedForm.count}
-                            onChange={(e) => setBedForm({ ...bedForm, count: parseInt(e.target.value) })}
-                            min="1"
-                            required
-                        />
-
-                        <input
-                            type="number"
-                            placeholder="Start Bed Number"
-                            value={bedForm.startNumber}
-                            onChange={(e) => setBedForm({ ...bedForm, startNumber: parseInt(e.target.value) })}
-                            min="1"
-                            required
-                        />
-
-                        <button type="submit">Add Beds</button>
-                    </form>
+                            <select
+                                value={bedForm.roomId}
+                                onChange={(e) => setBedForm({ ...bedForm, roomId: e.target.value })}
+                                required
+                                style={{ padding: 10, borderRadius: 4, border: "1px solid #ddd" }}
+                            >
+                                <option value="">Select Room</option>
+                                {rooms.map(room => <option key={room._id} value={room._id}>Room {room.number}</option>)}
+                            </select>
+                            <input
+                                type="number"
+                                placeholder="Number of Beds"
+                                value={bedForm.count}
+                                onChange={(e) => setBedForm({ ...bedForm, count: parseInt(e.target.value) })}
+                                min="1"
+                                required
+                                style={{ padding: 10, borderRadius: 4, border: "1px solid #ddd" }}
+                            />
+                            <input
+                                type="number"
+                                placeholder="Start Bed Number"
+                                value={bedForm.startNumber}
+                                onChange={(e) => setBedForm({ ...bedForm, startNumber: parseInt(e.target.value) })}
+                                min="1"
+                                required
+                                style={{ padding: 10, borderRadius: 4, border: "1px solid #ddd" }}
+                            />
+                            <div style={{ display: "flex", gap: 10 }}>
+                                <button type="submit" style={{ flex: 1, padding: 10, backgroundColor: "#2196F3", color: "#fff", border: "none", borderRadius: 4, cursor: "pointer" }}>Add</button>
+                                <button type="button" onClick={() => setShowAddModal(null)} style={{ flex: 1, padding: 10, backgroundColor: "#666", color: "#fff", border: "none", borderRadius: 4, cursor: "pointer" }}>Cancel</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             )}
 
             {/* Bed Action Modal */}
             {showBedModal && selectedBed && (
                 <div style={{
-                    position: "fixed",
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: "rgba(0,0,0,0.5)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    zIndex: 1000
+                    position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: "rgba(0,0,0,0.5)", display: "flex",
+                    alignItems: "center", justifyContent: "center", zIndex: 1000
                 }}>
-                    <div style={{
-                        backgroundColor: "#fff",
-                        padding: 30,
-                        borderRadius: 12,
-                        minWidth: 400,
-                        boxShadow: "0 4px 20px rgba(0,0,0,0.3)"
-                    }}>
-                        <h2 style={{ marginTop: 0 }}>Bed {selectedBed.number} - Room {selectedBed.roomNumber}</h2>
+                    <div style={{ backgroundColor: "#fff", padding: 30, borderRadius: 12, minWidth: 400 }}>
+                        <h2>Bed {selectedBed.number} - Room {selectedBed.roomNumber}</h2>
                         <p><strong>Current Status:</strong> <span style={{ color: getBedColor(selectedBed.status), fontWeight: "bold" }}>{selectedBed.status.toUpperCase()}</span></p>
                         {selectedBed.tenant && <p><strong>Tenant:</strong> {selectedBed.tenant.name}</p>}
 
@@ -573,7 +602,7 @@ const ManageProperty = () => {
                             <button onClick={() => updateBedStatus("available")} style={{ padding: 10, backgroundColor: "#4CAF50", color: "#fff", border: "none", borderRadius: 4, cursor: "pointer" }}>
                                 Mark as Available
                             </button>
-                            <button onClick={() => updateBedStatus("booked")} style={{ padding: 10, backgroundColor: "#FFC107", color: "#fff", border: "none", borderRadius: 4, cursor: "pointer" }}>
+                            <button onClick={() => updateBedStatus("booked")} style={{ padding: 10, backgroundColor: "#2196F3", color: "#fff", border: "none", borderRadius: 4, cursor: "pointer" }}>
                                 Mark as Booked
                             </button>
                             <button onClick={() => updateBedStatus("maintenance")} style={{ padding: 10, backgroundColor: "#9E9E9E", color: "#fff", border: "none", borderRadius: 4, cursor: "pointer" }}>

@@ -98,21 +98,38 @@ export const updateBedStatus = async (req, res) => {
 export const createBulkBeds = async (req, res) => {
     try {
         const { roomId, count, startNumber } = req.body;
+
+        // Fetch room to get hierarchy details
+        const room = await Room.findById(roomId);
+        if (!room) {
+            return res.status(404).json({ message: "Room not found" });
+        }
+
         const beds = [];
 
         for (let i = 0; i < count; i++) {
             beds.push({
                 room: roomId,
-                number: startNumber + i,
+                number: (parseInt(startNumber) + i).toString(),
+                floor: room.floor,
+                block: room.block,
+                property: room.property,
                 status: 'available'
             });
         }
 
         const createdBeds = await Bed.insertMany(beds);
+
+        // Add beds references to room
+        await Room.findByIdAndUpdate(roomId, {
+            $push: { beds: { $each: createdBeds.map(b => b._id) } }
+        });
+
         res.status(201).json(createdBeds);
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
+
 };
 
 // Get Full Hierarchy for a Property (Tree Structure)
