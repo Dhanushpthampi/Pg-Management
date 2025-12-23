@@ -105,8 +105,7 @@ const Properties = () => {
               </td>
               <td>
                 <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
-                  <button onClick={() => navigate(`/properties/${property._id}/beds`)}>View Beds</button>
-                  <button onClick={() => navigate(`/properties/${property._id}/hierarchy`)} style={{ backgroundColor: '#2196F3', color: 'white' }}>Manage Hierarchy</button>
+                  <button onClick={() => navigate(`/properties/${property._id}/manage`)} style={{ backgroundColor: '#2196F3', color: 'white' }}>Manage</button>
                   <button onClick={() => navigate(`/properties/${property._id}/edit`)}>Edit</button>
                   <button onClick={() => handleDelete(property._id)} style={{ backgroundColor: '#ff4444', color: 'white' }}>Delete</button>
                 </div>
