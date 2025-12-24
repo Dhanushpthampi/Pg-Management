@@ -4,11 +4,13 @@ import api from "../../api/axios";
 import { UserPlus } from "lucide-react";
 import PageHeader from "../../components/PageHeader";
 import SearchBar from "../../components/SearchBar";
+import Loader from "../../components/Loader";
 
 const Staff = () => {
   const navigate = useNavigate();
   const [staffList, setStaffList] = useState([]);
   const [filteredStaff, setFilteredStaff] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ search: "", role: "" });
 
   const fetchStaff = async () => {
@@ -18,6 +20,8 @@ const Staff = () => {
       setFilteredStaff(data);
     } catch (error) {
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -51,6 +55,8 @@ const Staff = () => {
       }
     }
   };
+
+  if (loading) return <Loader />;
 
   return (
     <div style={{ maxWidth: 1200, margin: "0 auto" }}>

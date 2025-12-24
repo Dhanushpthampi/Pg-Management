@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import PageHeader from "../../components/PageHeader";
-import { ArrowLeft, X } from "lucide-react";
+import { X } from "lucide-react";
+import BackButton from "../../components/BackButton";
 
 const AddProperty = () => {
   const navigate = useNavigate();
@@ -62,13 +63,7 @@ const AddProperty = () => {
 
   return (
     <div style={{ maxWidth: 600, margin: "0 auto" }}>
-      <button
-        className="btn btn-secondary"
-        onClick={() => navigate(-1)}
-        style={{ marginBottom: 20 }}
-      >
-        <ArrowLeft size={16} /> Back
-      </button>
+      <BackButton />
 
       <PageHeader title="Add New Property" />
 

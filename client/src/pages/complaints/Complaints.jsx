@@ -4,11 +4,13 @@ import api from "../../api/axios";
 import { Plus } from "lucide-react";
 import PageHeader from "../../components/PageHeader";
 import SearchBar from "../../components/SearchBar";
+import Loader from "../../components/Loader";
 
 const Complaints = () => {
   const navigate = useNavigate();
   const [allComplaints, setAllComplaints] = useState([]);
   const [complaints, setComplaints] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState({ search: "", status: "", category: "" });
 
   useEffect(() => {
@@ -19,6 +21,8 @@ const Complaints = () => {
         setComplaints(data);
       } catch (error) {
         console.error("Failed to fetch complaints", error);
+      } finally {
+        setLoading(false);
       }
     };
     fetchComplaints();
@@ -43,6 +47,8 @@ const Complaints = () => {
 
     setComplaints(filtered);
   }, [query, allComplaints]);
+
+  if (loading) return <Loader />;
 
   return (
     <div style={{ maxWidth: 1200, margin: "0 auto" }}>
@@ -114,14 +120,14 @@ const Complaints = () => {
                 </td>
                 <td>
                   <span className={`badge ${complaint.priority === 'high' ? 'danger' :
-                      complaint.priority === 'medium' ? 'warning' : 'neutral'
+                    complaint.priority === 'medium' ? 'warning' : 'neutral'
                     }`} style={{ textTransform: 'capitalize' }}>
                     {complaint.priority}
                   </span>
                 </td>
                 <td>
                   <span className={`badge ${complaint.status === 'resolved' ? 'success' :
-                      complaint.status === 'in_progress' ? 'warning' : 'neutral'
+                    complaint.status === 'in_progress' ? 'warning' : 'neutral'
                     }`} style={{ textTransform: 'capitalize' }}>
                     {complaint.status.replace('_', ' ')}
                   </span>

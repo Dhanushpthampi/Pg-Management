@@ -7,6 +7,9 @@ import {
   CreditCard, Home, Calendar
 } from "lucide-react";
 
+import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
+import { auth } from "../../firebaseConfig";
+
 const STEPS = [
   { id: 1, label: "Mobile Number", icon: <User size={18} /> },
   { id: 2, label: "Personal Information", icon: <User size={18} /> },
@@ -23,6 +26,7 @@ const CheckIn = () => {
   // Data State
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
+  const [confirmationResult, setConfirmationResult] = useState(null);
   const [properties, setProperties] = useState([]);
 
   // Hierarchy Data
@@ -222,14 +226,112 @@ const CheckIn = () => {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-
   const handleFileChange = (e) => {
     setFiles({ ...files, [e.target.name]: e.target.files[0] });
   };
 
+  /* MOCK OTP IMPLEMENTATION FOR TESTING */
+  const handleSendOtp = async () => {
+    if (!formData.phone) return;
+
+    // Simulate API call delay
+    setTimeout(() => {
+      setOtpSent(true);
+      alert("OTP Sent! (Test Mode: Use 123456)");
+    }, 500);
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!otp) return;
+
+    if (otp === "123456") {
+      alert("Phone number verified! (Test Mode)");
+      handleNext();
+    } else {
+      alert("Invalid OTP (Test Mode: Use 123456)");
+    }
+  };
+
+  /* FIREBASE IMPLEMENTATION (Commented out for now)
+  const setupRecaptcha = () => {
+    if (!window.recaptchaVerifier) {
+      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        'size': 'invisible',
+        'callback': (response) => {
+          // reCAPTCHA solved, allow signInWithPhoneNumber.
+          handleSendOtp();
+        }
+      });
+    }
+  };
+
+  const handleSendOtp = async () => {
+    if (!formData.phone) return;
+
+    // Clean phone number (remove spaces, etc) and format to E.164
+    let phoneNumber = formData.phone.replace(/\s/g, '');
+    if (!phoneNumber.startsWith('+')) {
+      phoneNumber = "+91" + phoneNumber;
+    }
+
+    console.log("Sending OTP to:", phoneNumber); // Debugging
+
+    // Standard reCAPTCHA setup
+    if (!window.recaptchaVerifier) {
+      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        'size': 'invisible',
+        'callback': (response) => {
+          handleSendOtp();
+        }
+      });
+    }
+    const appVerifier = window.recaptchaVerifier;
+
+    try {
+      const confirmation = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
+      window.confirmationResult = confirmation;
+      setConfirmationResult(confirmation);
+      setOtpSent(true);
+      alert("OTP sent successfully! (Check standard SMS or test code)");
+    } catch (error) {
+      console.error("Error sending OTP:", error);
+      alert("Failed to send OTP: " + error.message);
+
+      // Safely reset reCAPTCHA
+      if (window.recaptchaVerifier) {
+        try {
+          // Only clear if we really need to, but often better to just let it be or use reset()
+          // window.recaptchaVerifier.clear(); 
+          // grecaptcha.reset(window.recaptchaWidgetId); // If using widget ID
+
+          // Simple DOM reset if widget is broken
+          // document.getElementById('recaptcha-container').innerHTML = '';
+          // window.recaptchaVerifier = null;
+        } catch (e) {
+          console.error("Error clearing recaptcha", e);
+        }
+      }
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!otp || !confirmationResult) return;
+
+    try {
+      await confirmationResult.confirm(otp);
+      alert("Phone number verified!");
+      handleNext();
+    } catch (error) {
+      console.error("Error verifying OTP:", error);
+      alert("Invalid OTP. Please try again.");
+    }
+  };
+  */
+
   const handleNext = () => {
     // Basic validation per step could go here
     if (currentStep < 4) setCurrentStep(prev => prev + 1);
+
   };
 
   const handleBack = () => {
@@ -295,15 +397,20 @@ const CheckIn = () => {
             <div className="form-group">
               <label>Mobile Number</label>
               <div className="phone-group">
+                <div className="phone-prefix">🇮🇳 +91</div>
                 <input
-                  type="text"
+                  type="number"
                   name="phone"
                   value={formData.phone}
-                  onChange={handleChange}
-                  placeholder="+91"
-                  style={{ flex: 1 }}
+                  onChange={(e) => {
+                    if (e.target.value.length <= 10) {
+                      handleChange(e);
+                    }
+                  }}
+                  placeholder="98765 43210"
+                  style={{ flex: 1, borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
                 />
-                <button type="button" className="secondary-btn" onClick={() => setOtpSent(true)} disabled={!formData.phone}>
+                <button type="button" className="secondary-btn" onClick={handleSendOtp} disabled={!formData.phone || formData.phone.length !== 10}>
                   {otpSent ? "Resend OTP" : "Get OTP"}
                 </button>
               </div>
@@ -325,11 +432,12 @@ const CheckIn = () => {
 
             {otpSent && (
               <div style={{ display: 'flex', justifyContent: 'center', marginTop: 20 }}>
-                <button className="primary-btn" onClick={handleNext} disabled={otp.length !== 6}>
-                  Proceed <ArrowRight size={16} />
+                <button className="primary-btn" onClick={handleVerifyOtp} disabled={otp.length !== 6}>
+                  Verify & Proceed <ArrowRight size={16} />
                 </button>
               </div>
             )}
+            <div id="recaptcha-container"></div>
           </div>
         )}
 
@@ -518,22 +626,24 @@ const CheckIn = () => {
       </div>
 
       {/* Navigation Buttons (Except Step 1 which has its own flow) */}
-      {currentStep > 1 && (
-        <div className="step-actions">
-          <button className="secondary-btn" onClick={handleBack}>
-            <ArrowLeft size={16} /> Back
-          </button>
-          {currentStep < 4 ? (
-            <button className="primary-btn" onClick={handleNext}>
-              Next <ArrowRight size={16} />
+      {
+        currentStep > 1 && (
+          <div className="step-actions">
+            <button className="secondary-btn" onClick={handleBack}>
+              <ArrowLeft size={16} /> Back
             </button>
-          ) : (
-            <button className="primary-btn submit-btn" onClick={submitForm} disabled={loading}>
-              {loading ? "Checking In..." : "Check-in"}
-            </button>
-          )}
-        </div>
-      )}
+            {currentStep < 4 ? (
+              <button className="primary-btn" onClick={handleNext}>
+                Next <ArrowRight size={16} />
+              </button>
+            ) : (
+              <button className="primary-btn submit-btn" onClick={submitForm} disabled={loading}>
+                {loading ? "Checking In..." : "Check-in"}
+              </button>
+            )}
+          </div>
+        )
+      }
 
       <style>{`
             .checkin-page { max-width: 900px; margin: 0 auto; color: #333; } /* Slightly wider */
@@ -549,8 +659,27 @@ const CheckIn = () => {
             
             /* Step 1 tweaks */
             .step-container { max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
-            .phone-group { display: flex; gap: 15px; }
-
+            .phone-group { display: flex; gap: 0; align-items: stretch; }
+            .phone-prefix {
+                 background: #eee;
+                 border: 1px solid #e0e0e0;
+                 border-right: none;
+                 border-radius: 8px 0 0 8px;
+                 padding: 0 16px;
+                 display: flex;
+                 align-items: center;
+                 color: #555;
+                 font-weight: 500;
+            }
+            .phone-group input { border-top-left-radius: 0; border-bottom-left-radius: 0; }
+            .phone-group button { margin-left: 10px; }
+            
+            .phone-group { flex-direction: row; }
+            
+            @media (max-width: 768px) {
+                .phone-group { flex-direction: row; flex-wrap: wrap; }
+                .phone-group button { width: 100%; margin-left: 0; margin-top: 10px; }
+            }
             /* Step 4 & General Form */
             .step-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px 30px; }
             .form-group { display: flex; flexDirection: column; gap: 8px; }
@@ -632,8 +761,7 @@ const CheckIn = () => {
               .summary-row { max-width: 100%; }
             }
         `}</style>
-    </div>
+    </div >
   );
 };
-
 export default CheckIn;

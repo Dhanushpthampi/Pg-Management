@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import PageHeader from "../../components/PageHeader";
-import { ArrowLeft, Download } from "lucide-react";
+import { Download } from "lucide-react";
+import BackButton from "../../components/BackButton";
 
 const InvoiceView = () => {
   const { id } = useParams();
@@ -40,7 +41,7 @@ const InvoiceView = () => {
       return `${invoice.month} ${invoice.year}`;
     };
 
-const invoiceHTML = `
+    const invoiceHTML = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -314,13 +315,7 @@ const invoiceHTML = `
 
   return (
     <div style={{ maxWidth: 800, margin: "0 auto" }}>
-      <button
-        className="btn btn-secondary"
-        onClick={() => navigate(-1)}
-        style={{ marginBottom: 20 }}
-      >
-        <ArrowLeft size={16} /> Back
-      </button>
+      <BackButton />
 
       <PageHeader
         title={`Invoice #${invoice._id.slice(-6).toUpperCase()}`}

@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import PageHeader from "../../components/PageHeader";
-import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
+import BackButton from "../../components/BackButton";
 
 const NewInvoice = () => {
   const navigate = useNavigate();
@@ -136,13 +137,7 @@ const NewInvoice = () => {
 
   return (
     <div style={{ maxWidth: 700, margin: "0 auto" }}>
-      <button
-        className="btn btn-secondary"
-        onClick={() => navigate(-1)}
-        style={{ marginBottom: 20 }}
-      >
-        <ArrowLeft size={16} /> Back
-      </button>
+      <BackButton />
 
       <PageHeader title="Create Invoice" />
 

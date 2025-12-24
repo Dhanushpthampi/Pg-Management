@@ -5,11 +5,13 @@ import { Plus, Download } from "lucide-react";
 import PageHeader from "../../components/PageHeader";
 import SearchBar from "../../components/SearchBar";
 import { generateInvoiceHTML } from "../../utils/invoiceTemplate";
+import Loader from "../../components/Loader";
 
 const Invoices = () => {
   const navigate = useNavigate();
   const [allInvoices, setAllInvoices] = useState([]);
   const [invoices, setInvoices] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
   useEffect(() => {
@@ -20,6 +22,8 @@ const Invoices = () => {
         setInvoices(data);
       } catch (error) {
         console.error("Failed to fetch invoices", error);
+      } finally {
+        setLoading(false);
       }
     };
     fetchInvoices();
@@ -37,12 +41,14 @@ const Invoices = () => {
     }
   }, [search, allInvoices]);
 
-const handleDownload = (invoice) => {
-  const win = window.open("", "", "width=900,height=800");
-  win.document.write(generateInvoiceHTML(invoice));
-  win.document.close();
-};
+  const handleDownload = (invoice) => {
+    const win = window.open("", "", "width=900,height=800");
+    win.document.write(generateInvoiceHTML(invoice));
+    win.document.close();
+  };
 
+
+  if (loading) return <Loader />;
 
   return (
     <div style={{ maxWidth: 1200, margin: "0 auto" }}>

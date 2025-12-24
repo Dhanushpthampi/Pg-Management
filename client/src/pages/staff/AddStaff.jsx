@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import PageHeader from "../../components/PageHeader";
-import { ArrowLeft } from "lucide-react";
+import BackButton from "../../components/BackButton";
 
 const AddStaff = () => {
   const navigate = useNavigate();
@@ -28,16 +28,10 @@ const AddStaff = () => {
       console.error(error);
       alert("Failed to add staff");
     }
-  }; 
+  };
   return (
     <div style={{ maxWidth: 600, margin: "0 auto" }}>
-      <button
-        className="btn btn-secondary"
-        onClick={() => navigate(-1)}
-        style={{ marginBottom: 20 }}
-      >
-        <ArrowLeft size={16} /> Back
-      </button>
+      <BackButton />
 
       <PageHeader title="Add Staff" />
 
@@ -59,7 +53,7 @@ const AddStaff = () => {
               name="phone"
               placeholder="Ex: 9876543210"
               onChange={handleChange}
-              required 
+              required
             />
           </div>
 

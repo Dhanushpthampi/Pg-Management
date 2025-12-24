@@ -5,8 +5,11 @@ import { Plus, Building } from "lucide-react";
 import PageHeader from "../../components/PageHeader";
 import SearchBar from "../../components/SearchBar";
 
+import Loader from "../../components/Loader";
+
 const Properties = () => {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
   const [allProperties, setAllProperties] = useState([]);
   const [properties, setProperties] = useState([]);
   const [query, setQuery] = useState({ search: "", city: "", status: "" });
@@ -18,6 +21,8 @@ const Properties = () => {
       setProperties(data);
     } catch (error) {
       console.error("Failed to fetch properties", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -57,6 +62,8 @@ const Properties = () => {
       }
     }
   };
+
+  if (loading) return <Loader />;
 
   return (
     <div style={{ maxWidth: 1200, margin: "0 auto" }}>

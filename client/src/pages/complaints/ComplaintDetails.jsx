@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import PageHeader from "../../components/PageHeader";
-import { ArrowLeft } from "lucide-react";
+import BackButton from "../../components/BackButton";
 
 const ComplaintDetails = () => {
   const { id } = useParams();
@@ -42,13 +42,7 @@ const ComplaintDetails = () => {
 
   return (
     <div style={{ maxWidth: 800, margin: "0 auto" }}>
-      <button
-        className="btn btn-secondary"
-        onClick={() => navigate(-1)}
-        style={{ marginBottom: 20 }}
-      >
-        <ArrowLeft size={16} /> Back
-      </button>
+      <BackButton />
 
       <PageHeader title={`Complaint #${complaint._id.slice(-6)}`} />
 

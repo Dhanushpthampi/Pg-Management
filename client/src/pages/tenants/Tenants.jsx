@@ -5,8 +5,11 @@ import { UserPlus } from "lucide-react";
 import PageHeader from "../../components/PageHeader";
 import SearchBar from "../../components/SearchBar";
 
+import Loader from "../../components/Loader";
+
 const Tenants = () => {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
   const [allTenants, setAllTenants] = useState([]);
   const [tenants, setTenants] = useState([]);
   const [query, setQuery] = useState({ search: "", status: "", property: "" });
@@ -25,6 +28,8 @@ const Tenants = () => {
         setProperties(propsRes.data);
       } catch (error) {
         console.error("Failed to fetch data", error);
+      } finally {
+        setLoading(false);
       }
     };
     fetchAllData();
@@ -50,6 +55,8 @@ const Tenants = () => {
 
     setTenants(filtered);
   }, [query, allTenants]);
+
+  if (loading) return <Loader />;
 
   return (
     <div style={{ maxWidth: 1200, margin: "0 auto" }}>
@@ -116,7 +123,7 @@ const Tenants = () => {
                 </td>
                 <td>
                   <span className={`badge ${tenant.status === "active" ? "success" :
-                      tenant.status === "vacated" ? "danger" : "warning"
+                    tenant.status === "vacated" ? "danger" : "warning"
                     }`}>
                     {tenant.status.replace("_", " ")}
                   </span>

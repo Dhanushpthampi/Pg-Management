@@ -4,11 +4,13 @@ import api from "../../api/axios";
 import { Plus } from "lucide-react";
 import PageHeader from "../../components/PageHeader";
 import SearchBar from "../../components/SearchBar";
+import Loader from "../../components/Loader";
 
 const Bookings = () => {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
   const [filteredBookings, setFilteredBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
   const fetchBookings = async () => {
@@ -18,6 +20,8 @@ const Bookings = () => {
       setFilteredBookings(data);
     } catch (error) {
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -60,6 +64,8 @@ const Bookings = () => {
       }
     });
   };
+
+  if (loading) return <Loader />;
 
   return (
     <div style={{ maxWidth: 1200, margin: "0 auto" }}>
