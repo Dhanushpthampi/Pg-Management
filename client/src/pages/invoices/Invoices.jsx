@@ -85,7 +85,7 @@ const Invoices = () => {
           <tbody>
             {invoices.map((invoice) => (
               <tr key={invoice._id}>
-                <td>{new Date(invoice.createdAt).toLocaleDateString()}</td>
+                <td>{new Date(invoice.createdAt).toLocaleDateString('en-GB')}</td>
                 <td>
                   <div style={{ fontWeight: 500 }}>{invoice.tenant?.name || "N/A"}</div>
                   <div className="text-sm">{invoice.property?.name}</div>

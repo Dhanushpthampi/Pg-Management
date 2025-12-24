@@ -134,7 +134,7 @@ const Complaints = () => {
                 </td>
                 <td>
                   <div>{complaint.raisedBy?.name || "N/A"}</div>
-                  <div className="text-sm">{new Date(complaint.createdAt).toLocaleDateString()}</div>
+                  <div className="text-sm">{new Date(complaint.createdAt).toLocaleDateString('en-GB')}</div>
                 </td>
                 <td>
                   <button

@@ -110,10 +110,11 @@ const Properties = () => {
             <tr>
               <th>Property</th>
               <th>City</th>
-              <th>Number of Floors</th>
-              <th>Total Beds</th>
+              <th>Floors</th>
+              <th>Beds</th>
               <th>Occupied</th>
               <th>Manager</th>
+              <th>Created At</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -139,6 +140,7 @@ const Properties = () => {
                     <span style={{ color: 'var(--secondary)', fontSize: 12 }}> / {stats.totalBeds}</span>
                   </td>
                   <td>{property.contactPerson || "N/A"}</td>
+                  <td>{new Date(property.createdAt).toLocaleDateString('en-GB')}</td>
                   <td>
                     <div className="flex-gap">
                       <button className="btn btn-secondary" style={{ padding: "4px 8px", fontSize: 12 }} onClick={() => navigate(`/properties/${property._id}/manage`)}>Manage</button>
@@ -156,7 +158,7 @@ const Properties = () => {
               );
             })}
             {properties.length === 0 && (
-              <tr><td colSpan="7" style={{ textAlign: "center", padding: 30, color: "var(--secondary)" }}>No properties found.</td></tr>
+              <tr><td colSpan="8" style={{ textAlign: "center", padding: 30, color: "var(--secondary)" }}>No properties found.</td></tr>
             )}
           </tbody>
         </table>

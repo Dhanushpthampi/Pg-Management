@@ -105,7 +105,7 @@ const Bookings = () => {
             {filteredBookings.map((booking) => (
               <tr key={booking._id}>
                 <td>
-                  <div style={{ fontWeight: 500 }}>{new Date(booking.createdAt).toLocaleDateString()}</div>
+                  <div style={{ fontWeight: 500 }}>{new Date(booking.createdAt).toLocaleDateString('en-GB')}</div>
                   <div className="text-sm">Paid: ₹{booking.amount}</div>
                 </td>
                 <td>

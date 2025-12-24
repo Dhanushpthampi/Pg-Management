@@ -97,6 +97,7 @@ const Staff = () => {
               <th>Email</th>
               <th>Role</th>
               <th>Phone</th>
+              <th>Created At</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -111,6 +112,7 @@ const Staff = () => {
                   </span>
                 </td>
                 <td>{staff.phone}</td>
+                <td>{new Date(staff.createdAt).toLocaleDateString('en-GB')}</td>
                 <td>
                   <div className="flex-gap">
                     <button
@@ -132,7 +134,7 @@ const Staff = () => {
               </tr>
             ))}
             {filteredStaff.length === 0 && (
-              <tr><td colSpan="5" style={{ textAlign: "center", padding: 30, color: "var(--secondary)" }}>No staff found.</td></tr>
+              <tr><td colSpan="6" style={{ textAlign: "center", padding: 30, color: "var(--secondary)" }}>No staff found.</td></tr>
             )}
           </tbody>
         </table>

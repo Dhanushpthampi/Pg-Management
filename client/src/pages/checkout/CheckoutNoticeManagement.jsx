@@ -46,9 +46,11 @@ const CheckoutNoticeManagement = () => {
     };
 
     // Filter tenants based on active tab
-    const displayTenants = activeTab === "raise-notice"
+    let displayTenants = activeTab === "raise-notice"
         ? filteredTenants.filter(t => t.status === "active")
         : filteredTenants.filter(t => t.status === "on_notice");
+
+    // MOCK DATA INJECTION REMOVED per user request
 
     return (
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>
@@ -61,7 +63,7 @@ const CheckoutNoticeManagement = () => {
                 </p>
             </div>
 
-            {/* Tab Navigation */}
+            {/* Tab Navigation (Segmented Look) */}
             <div className="tab-container">
                 <button
                     className={`tab-btn ${activeTab === "raise-notice" ? "active" : ""}`}
@@ -93,76 +95,73 @@ const CheckoutNoticeManagement = () => {
             <div className="data-table-container">
                 <table className="data-table">
                     <thead>
-                        <tr>
-                            <th>Tenant Name</th>
-                            <th>Phone Number</th>
-                            <th>PG Name</th>
-                            <th>Room No</th>
-                            {activeTab === "raise-notice" ? (
-                                <>
-                                    <th>Status</th>
-                                    <th>Action Available</th>
-                                </>
-                            ) : (
-                                <>
-                                    <th>Expected Checkout</th>
-                                    <th>Dues Status</th>
-                                    <th>Deposit Amount</th>
-                                    <th>Action</th>
-                                </>
-                            )}
-                        </tr>
+                        {activeTab === "raise-notice" ? (
+                            <tr>
+                                <th>Tenant Name</th>
+                                <th>Phone Number</th>
+                                <th>PG Name</th>
+                                <th>Room No</th>
+                                <th>Status</th>
+                                <th>Action Available</th>
+                            </tr>
+                        ) : (
+                            <tr>
+                                <th>Tenant Name</th>
+                                <th>PG Name</th>
+                                <th>Expected Checkout Date</th>
+                                <th>Dues Status</th>
+                                <th>Deposit Amount</th>
+                                <th>Action</th>
+                            </tr>
+                        )}
                     </thead>
                     <tbody>
                         {displayTenants.map((tenant) => (
                             <tr key={tenant._id}>
                                 <td style={{ fontWeight: 500 }}>{tenant.name}</td>
-                                <td>{tenant.phone}</td>
-                                <td>{tenant.property?.name || "N/A"}</td>
-                                <td>
-                                    {tenant.block?.name || "B"}-{tenant.room?.number || "101"}-
-                                    {tenant.bed?.number || "A"}
-                                </td>
+
                                 {activeTab === "raise-notice" ? (
                                     <>
+                                        <td>{tenant.phone}</td>
+                                        <td>{tenant.property?.name || "N/A"}</td>
+                                        <td>
+                                            {tenant.block?.name ? `${tenant.block.name}-` : ""}{tenant.room?.number || "101"}-{tenant.bed?.number || "A"}
+                                        </td>
                                         <td>
                                             <span className={`badge ${tenant.status === "active" ? "success" : "warning"}`}>
                                                 {tenant.status === "active" ? "Active" : "On Notice"}
                                             </span>
                                         </td>
                                         <td>
-                                            {tenant.status === "active" ? (
-                                                <button
-                                                    className="btn btn-primary"
-                                                    style={{ padding: "6px 12px", fontSize: 13 }}
-                                                    onClick={() => handleRaiseNotice(tenant._id)}
-                                                >
-                                                    Raise Notice
-                                                </button>
-                                            ) : (
-                                                <span style={{ color: "var(--secondary)" }}>—</span>
-                                            )}
+                                            <button
+                                                className="btn btn-primary"
+                                                style={{ padding: "6px 12px", fontSize: 13 }}
+                                                onClick={() => handleRaiseNotice(tenant._id)}
+                                            >
+                                                Raise Notice
+                                            </button>
                                         </td>
                                     </>
                                 ) : (
                                     <>
+                                        <td>{tenant.property?.name || "N/A"}</td>
                                         <td>
                                             {tenant.vacatingDate
                                                 ? new Date(tenant.vacatingDate).toLocaleDateString("en-GB", {
-                                                    day: "2-digit",
+                                                    day: "numeric",
                                                     month: "short",
                                                     year: "numeric",
                                                 })
                                                 : "Not Set"}
                                         </td>
                                         <td>
-                                            <span className="badge neutral">No Dues</span>
+                                            <span className="badge neutral" style={{ background: 'none', border: 'none', padding: 0, color: 'inherit' }}>No Dues</span>
                                         </td>
-                                        <td>₹{tenant.depositAmount?.toLocaleString("en-IN") || "0"}</td>
+                                        <td style={{ fontWeight: 500 }}>₹{tenant.depositAmount?.toLocaleString("en-IN") || "0"}</td>
                                         <td>
                                             <button
-                                                className="btn btn-primary"
-                                                style={{ padding: "6px 12px", fontSize: 13 }}
+                                                className="btn btn-secondary" // Changed style to match wireframe ghost button look usually or explicit action
+                                                style={{ padding: "6px 12px", fontSize: 13, border: '1px solid #ddd' }}
                                                 onClick={() => handleProcessCheckout(tenant._id)}
                                             >
                                                 Process Checkout
@@ -175,7 +174,7 @@ const CheckoutNoticeManagement = () => {
                         {displayTenants.length === 0 && (
                             <tr>
                                 <td
-                                    colSpan={activeTab === "raise-notice" ? 6 : 7}
+                                    colSpan={activeTab === "raise-notice" ? 6 : 6}
                                     style={{ textAlign: "center", padding: 30, color: "var(--secondary)" }}
                                 >
                                     No tenants found
@@ -188,36 +187,33 @@ const CheckoutNoticeManagement = () => {
 
             <style>{`
         .tab-container {
-          display: flex;
-          gap: 0;
+          display: inline-flex;
+          background: #f0f0f0;
+          padding: 4px;
+          border-radius: 8px;
           margin-bottom: 24px;
-          border-bottom: 1px solid var(--border-color);
-          overflow-x: auto; /* Allow tabs to scroll on very small screens */
+          /* Removed bottom border */
         }
         .tab-btn {
-          padding: 12px 24px;
-          background: none;
+          padding: 8px 16px;
           border: none;
-          border-bottom: 2px solid transparent;
-          cursor: pointer;
-          font-size: 14px;
+          background: transparent;
+          color: #666;
           font-weight: 500;
-          color: var(--secondary);
+          font-size: 14px;
+          cursor: pointer;
+          border-radius: 6px;
           transition: all 0.2s;
-          white-space: nowrap;
-        }
-        .tab-btn:hover {
-          color: var(--primary);
         }
         .tab-btn.active {
-          color: var(--primary);
-          border-bottom-color: var(--primary);
+          background: white;
+          color: black;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         .search-container {
           position: relative;
           margin-bottom: 24px;
           width: 100%;
-          max-width: 400px; /* Limit width on desktop */
         }
         .search-icon-custom {
           position: absolute;
@@ -230,7 +226,7 @@ const CheckoutNoticeManagement = () => {
           width: 100%;
           padding: 12px 12px 12px 45px;
           border: 1px solid var(--border-color);
-          border-radius: var(--radius);
+          border-radius: 20px; /* Rounded search bar like wireframe */
           font-size: 14px;
         }
         .search-input-custom:focus {
@@ -239,14 +235,8 @@ const CheckoutNoticeManagement = () => {
         }
         
         @media (max-width: 768px) {
-          .search-container {
-            max-width: 82%; /* Full width on mobile */
-          }
-          .tab-btn {
-            padding: 12px 16px; /* Smaller padding on mobile */
-            flex: 1; /* Distribute space evenly? or just scroll */
-            text-align: center;
-          }
+          .tab-container { width: 100%; display: flex; }
+          .tab-btn { flex: 1; text-align: center; }
         }
       `}</style>
         </div>

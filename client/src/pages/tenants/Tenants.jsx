@@ -106,6 +106,7 @@ const Tenants = () => {
               <th>Property</th>
               <th>Allocated</th>
               <th>Status</th>
+              <th>Created At</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -128,6 +129,7 @@ const Tenants = () => {
                     {tenant.status.replace("_", " ")}
                   </span>
                 </td>
+                <td>{new Date(tenant.createdAt).toLocaleDateString('en-GB')}</td>
                 <td>
                   <button
                     className="btn btn-secondary"
@@ -141,7 +143,7 @@ const Tenants = () => {
             ))}
             {tenants.length === 0 && (
               <tr>
-                <td colSpan="6" style={{ textAlign: "center", padding: 30, color: "var(--secondary)" }}>No tenants found.</td>
+                <td colSpan="7" style={{ textAlign: "center", padding: 30, color: "var(--secondary)" }}>No tenants found.</td>
               </tr>
             )}
           </tbody>
