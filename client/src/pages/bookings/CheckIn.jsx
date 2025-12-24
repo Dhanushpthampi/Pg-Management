@@ -240,7 +240,7 @@ const CheckIn = () => {
       alert("OTP Sent! (Test Mode: Use 123456)");
     }, 500);
   };
-
+// i ma just doing the otp verification in frontned because if implementing firebase we would be doign it in the frontend 
   const handleVerifyOtp = async () => {
     if (!otp) return;
 
